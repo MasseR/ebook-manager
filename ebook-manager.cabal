@@ -20,9 +20,11 @@ executable ebook-manager
   other-modules:       Devel.Main
                      , Server
                      , API
+                     , Types
   -- other-extensions:
   build-depends:       base >=4.10 && <4.11
                      , servant
+                     , monad-logger
                      , servant-server
                      , servant-docs
                      , classy-prelude

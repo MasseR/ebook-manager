@@ -17,6 +17,7 @@ import Servant
 import Servant.HTML.Lucid (HTML)
 import Lucid (HtmlT, ToHtml(..))
 import qualified Lucid.Html5 as H
+import Types
 
 data Index = Index
 
@@ -39,5 +40,5 @@ instance ToHtml Index where
 
 type API = Get '[HTML] Index
 
-handler :: ServerT API Handler
+handler :: ServerT API AppM
 handler = return Index
