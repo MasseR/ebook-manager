@@ -3,6 +3,7 @@
 {-# Language DuplicateRecordFields #-}
 {-# Language TypeApplications #-}
 {-# Language DataKinds #-}
+{-# Language NoImplicitPrelude #-}
 module Main where
 
 import Server (server)
@@ -14,9 +15,19 @@ import System.Process (callProcess)
 import ClassyPrelude
 import Control.Lens (view)
 import Data.Generics.Product
+import Data.Pool (createPool)
+import Database.Selda.PostgreSQL (PGConnectInfo(..), pgOpen, seldaClose)
 
 defaultMain :: Config -> IO ()
-defaultMain c = run 8080 (server (App c))
+defaultMain config = do
+  let pgHost = view (field @"database" . field @"host") config
+      pgPort = 5432
+      pgDatabase = view (field @"database" . field @"database") config
+      pgUsername = Just (view (field @"database" . field @"username") config)
+      pgPassword = Just (view (field @"database" . field @"password") config)
+  database <- createPool (pgOpen (PGConnectInfo{..})) seldaClose 10 2 5
+  let app = App{..}
+  run 8080 (server app)
 
 migrate :: Pg -> IO ()
 migrate Pg{..} = do

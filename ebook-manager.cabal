@@ -20,6 +20,8 @@ executable ebook-manager
   other-modules:       Devel.Main
                      , API
                      , Configuration
+                     , Database
+                     , Database.Schema
                      , Server
                      , Types
   -- other-extensions:
