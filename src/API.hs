@@ -47,7 +47,7 @@ type API = Get '[HTML] Index
 
 handler :: ServerT API AppM
 handler = do
-  u <- runDB $
+  u <- runDB $ do
     query $ select $ gen users
   $logInfo $ "users: " <> (pack . show $ u)
   return Index
