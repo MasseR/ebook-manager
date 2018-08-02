@@ -1,0 +1,9 @@
+version: '2'
+
+services:
+  postgres:
+    image: postgres:9.6.1
+    environment:
+      - POSTGRES_PASSWORD=devel
+    ports:
+      - "5432:5432"

@@ -1,3 +1,4 @@
+{-# Language OverloadedStrings #-}
 module Devel.Main where
 
 import Main (defaultMain)
@@ -6,6 +7,7 @@ import Control.Monad (void)
 import Data.IORef (IORef, newIORef, readIORef, writeIORef)
 import Foreign.Store (Store(..), lookupStore, readStore, storeAction, withStore)
 import GHC.Word (Word32)
+import Dhall (input, auto)
 
 update :: IO ()
 update = do
@@ -23,7 +25,7 @@ update = do
       withStore doneStore takeMVar
       readStore doneStore >>= start
     start :: MVar () -> IO ThreadId
-    start done = forkFinally defaultMain (\_ -> putMVar done ())
+    start done = forkFinally (input auto "./config/devel.dhall" >>= defaultMain) (\_ -> putMVar done ())
 
 modifyStoredIORef :: Store (IORef a) -> (a -> IO a) -> IO ()
 modifyStoredIORef store f = withStore store $ \ref -> do

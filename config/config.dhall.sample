@@ -1,0 +1,8 @@
+{
+  database = {
+      username = "username"
+    , password = "password"
+    , host = "hostname"
+    , database = "ebook"
+  }
+}
