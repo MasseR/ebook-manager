@@ -18,6 +18,8 @@ cabal-version:       >=1.10
 executable ebook-manager
   main-is:             Main.hs
   other-modules:       Devel.Main
+                     , Server
+                     , API
   -- other-extensions:
   build-depends:       base >=4.10 && <4.11
                      , servant
