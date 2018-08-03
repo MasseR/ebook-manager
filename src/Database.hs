@@ -7,7 +7,10 @@ module Database
   , runDB
   , query
   , select
-  , gen )
+  , gen
+  , fromRel
+  , toRel
+  , SeldaT )
   where
 
 import Data.Generics.Product
@@ -15,7 +18,7 @@ import Control.Lens (view)
 import Data.Pool (Pool, withResource)
 import Database.Selda.Backend (SeldaConnection, runSeldaT, SeldaT)
 import Database.Selda (query, select)
-import Database.Selda.Generic (gen)
+import Database.Selda.Generic (gen, fromRel, toRel)
 import ClassyPrelude
 
 type DBLike r m = (MonadIO m, MonadReader r m, MonadBaseControl IO m, MonadMask m, HasField' "database" r (Pool SeldaConnection))

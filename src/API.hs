@@ -20,6 +20,8 @@ import qualified Lucid.Html5 as H
 import Types
 import Control.Monad.Logger
 
+import qualified API.Users as Users
+
 -- XXX: Temporary
 import Database.Schema
 import Database
@@ -44,9 +46,13 @@ instance ToHtml Index where
   toHtmlRaw = toHtml
 
 type API = Get '[HTML] Index
+      :<|> Users.API
 
 handler :: ServerT API AppM
-handler = do
+handler = indexHandler :<|> Users.handler
+
+indexHandler :: AppM Index
+indexHandler = do
   u <- runDB $ do
     query $ select $ gen users
   $logInfo $ "users: " <> (pack . show $ u)
