@@ -20,9 +20,6 @@ import Data.Generics.Product
 import Servant.Auth as SA
 import Servant.Auth.Server as SAS
 
-data LoginForm = LoginForm { username :: Text
-                           , password :: Text }
-               deriving (Generic, Show)
 
 data RegisterForm = RegisterForm { username :: Username
                                  , email :: Email
@@ -34,12 +31,8 @@ data LoginStatus = LoginStatus ( Maybe SafeUser ) deriving Generic
 
 data RegisterStatus = RegisterStatus deriving Generic
 
-instance FromJSON LoginForm
-instance ToJSON LoginForm
 instance ToJSON LoginStatus
 instance FromJSON LoginStatus
-instance FromForm LoginForm
-instance ToForm LoginForm
 
 instance FromJSON RegisterForm
 instance ToJSON RegisterForm
