@@ -25,6 +25,7 @@ executable ebook-manager
                      , Database.Schema
                      , Database.User
                      , Server
+                     , Server.Auth
                      , Types
   -- other-extensions:
   build-depends:       base >=4.10 && <4.11

@@ -13,7 +13,7 @@
 module Server where
 
 import qualified API as API
-import qualified API.Users as Users
+import Server.Auth (authCheck)
 import Servant
 import Types
 import ClassyPrelude hiding (Handler)
@@ -31,7 +31,7 @@ server app = serveWithContext api cfg (enter server' API.handler :<|> serveDirec
   where
     myKey = view (field @"jwk") app
     jwtCfg = defaultJWTSettings myKey
-    authCfg = Users.authCheck app
+    authCfg = authCheck app
     cfg = jwtCfg :. defaultCookieSettings :. authCfg :. EmptyContext
     server' :: AppM :~> Servant.Handler
     server' = NT (Handler . ExceptT . try . (`runReaderT` app) . (runFileLoggingT "logs/server.log"))
