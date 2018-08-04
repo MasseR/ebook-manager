@@ -18,13 +18,8 @@ import Servant.HTML.Lucid (HTML)
 import Lucid (HtmlT, ToHtml(..))
 import qualified Lucid.Html5 as H
 import Types
-import Control.Monad.Logger
 
 import qualified API.Users as Users
-
--- XXX: Temporary
-import Database.Schema
-import Database
 
 data Index = Index
 
@@ -53,7 +48,4 @@ handler = indexHandler :<|> Users.handler
 
 indexHandler :: AppM Index
 indexHandler = do
-  u <- runDB $ do
-    query $ select $ gen users
-  $logInfo $ "users: " <> (pack . show $ u)
   return Index

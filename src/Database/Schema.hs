@@ -2,6 +2,7 @@
 {-# Language DeriveGeneric #-}
 {-# Language OverloadedStrings #-}
 {-# Language DuplicateRecordFields #-}
+{-# Language GeneralizedNewtypeDeriving #-}
 module Database.Schema where
 
 import ClassyPrelude
@@ -9,15 +10,48 @@ import Database.Selda.Generic
 import Database.Selda
 import Database.Selda.Backend
 
+import Data.Aeson
+import Web.HttpApiData
+
 -- | User type
+newtype PlainPassword = PlainPassword Text deriving (Show, ToJSON, FromJSON, ToHttpApiData, FromHttpApiData, Eq)
+newtype HashedPassword = HashedPassword {unHashed :: ByteString}
+data NoPassword = NoPassword
+
+newtype Email = Email { unEmail :: Text } deriving (Show, ToJSON, FromJSON, ToHttpApiData, FromHttpApiData)
+
+newtype Username = Username { unUsername :: Text } deriving (Show, ToJSON, FromJSON, ToHttpApiData, FromHttpApiData)
+
+instance SqlType HashedPassword where
+  mkLit = LCustom . LBlob . unHashed
+  fromSql (SqlBlob x) = HashedPassword x
+  fromSql _ = error "fromSql: Bad hash"
+  defaultValue = mkLit (HashedPassword "") -- Makes no sense
+
+instance SqlType Email where
+  mkLit = LCustom . LText . unEmail
+  fromSql (SqlString x) = Email x
+  fromSql _ = error "fromSql: Bad email"
+  defaultValue = mkLit (Email "")
+
+instance SqlType Username where
+  mkLit = LCustom . LText . unUsername
+  fromSql (SqlString x) = Username x
+  fromSql _ = error "fromSql: Bad username"
+  defaultValue = mkLit (Username "")
+
+
 data User pass = User { identifier :: RowID
-                      , email :: Text
-                      , username :: Text
+                      , email :: Email
+                      , username :: Username
                       , role :: Role
                       , password :: pass }
           deriving (Show, Generic)
 
-data Role = UserRole | AdminRole deriving (Show, Read, Enum, Bounded, Typeable)
+data Role = UserRole | AdminRole deriving (Show, Read, Enum, Bounded, Typeable, Generic)
+
+instance ToJSON Role
+instance FromJSON Role
 
 instance SqlType Role where
   mkLit = LCustom . LText . pack . show
@@ -27,10 +61,10 @@ instance SqlType Role where
 
   defaultValue = mkLit minBound
 
-users :: GenTable (User ByteString)
-users = genTable "users" [ (email :: User ByteString -> Text) :- uniqueGen
+users :: GenTable (User HashedPassword)
+users = genTable "users" [ (email :: User HashedPassword -> Email) :- uniqueGen
                          , username :- uniqueGen
-                         , (identifier :: User ByteString -> RowID) :- autoPrimaryGen ]
+                         , (identifier :: User HashedPassword -> RowID) :- autoPrimaryGen ]
 
 -- | Book type
 newtype HashDigest = HashDigest { unHex :: Text } deriving Show
