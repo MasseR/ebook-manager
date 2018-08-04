@@ -27,6 +27,7 @@ executable ebook-manager
                      , Server
                      , Server.Auth
                      , Types
+                     , View
   -- other-extensions:
   build-depends:       base >=4.10 && <4.11
                      , servant
