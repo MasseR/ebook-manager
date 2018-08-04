@@ -28,7 +28,7 @@ insertUser username email (PlainPassword password) =
     insertAs role = do
       lift $ $logInfo $ "Inserting new user as " <> pack (show role)
       let bytePass = encodeUtf8 password
-      user <- User email username role . HashedPassword <$> lift (hashPassword 12 bytePass)
+      user <- User def email username role . HashedPassword <$> lift (hashPassword 12 bytePass)
       insert_ (gen users) [toRel (over (field @"password") unHashed user)] >> return (over (field @"password") (const NoPassword) user)
 
 adminExists :: (MonadMask m, MonadLogger m, MonadIO m) => SeldaT m Bool
@@ -38,7 +38,7 @@ adminExists = do
   return $ maybe False (> 0) . listToMaybe $ r
   where
     q = aggregate $ do
-      (_ :*: _ :*: r :*: _) <- select (gen users)
+      (_ :*: _ :*: _ :*: r :*: _) <- select (gen users)
       restrict (r .== literal AdminRole)
       return (count r)
 
@@ -49,6 +49,6 @@ getUser' :: (MonadMask m, MonadIO m) => Text -> SeldaT m (Maybe ( User HashedPas
 getUser' name = over (_Just . field @"password") HashedPassword . listToMaybe . fmap fromRel <$> query q
   where
     q = do
-      u@(username :*: _ :*: _ :*: _) <- select (gen users)
+      u@(_ :*: username :*: _ :*: _ :*: _) <- select (gen users)
       restrict (username .== literal name)
       return u

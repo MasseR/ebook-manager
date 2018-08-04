@@ -41,6 +41,12 @@ develMain = do
   where
     migrate = do
       tryCreateTable (gen users)
+      tryCreateTable (gen books)
+      tryCreateTable (gen userBooks)
+      tryCreateTable (gen tags)
+      tryCreateTable (gen channels)
+      tryCreateTable (gen bookTags)
+      tryCreateTable (gen bookChannels)
 
 modifyStoredIORef :: Store (IORef a) -> (a -> IO a) -> IO ()
 modifyStoredIORef store f = withStore store $ \ref -> do
