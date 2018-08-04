@@ -16,6 +16,7 @@ import Control.Lens (view)
 import Data.Generics.Product
 import Data.Pool (createPool)
 import Database.Selda.PostgreSQL (PGConnectInfo(..), pgOpen, seldaClose)
+import Servant.Auth.Server (generateKey)
 
 defaultMain :: App -> IO ()
 defaultMain = run 8080 . server
@@ -28,6 +29,7 @@ withApp config f = do
       pgUsername = Just (view (field @"database" . field @"username") config)
       pgPassword = Just (view (field @"database" . field @"password") config)
   database <- createPool (pgOpen (PGConnectInfo{..})) seldaClose 10 2 5
+  jwk <- generateKey
   f App{..}
 
 main :: IO ()

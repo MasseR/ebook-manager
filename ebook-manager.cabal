@@ -59,6 +59,9 @@ executable ebook-manager
                      , process
                      , aeson
                      , http-api-data
+                     , servant-auth
+                     , servant-auth-server
+                     , jose
   hs-source-dirs:      src
   default-extensions:  DeriveGeneric
                      , NoImplicitPrelude

@@ -1,3 +1,6 @@
+{-# Language TypeApplications #-}
+{-# Language DataKinds #-}
+{-# Language FlexibleContexts #-}
 module Devel.Main where
 
 import Prelude
@@ -55,3 +58,4 @@ modifyStoredIORef store f = withStore store $ \ref -> do
 
 tidStoreNum :: Word32
 tidStoreNum = 1
+

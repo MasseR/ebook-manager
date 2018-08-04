@@ -2,20 +2,23 @@
 {-# Language DeriveGeneric #-}
 {-# Language TypeSynonymInstances #-}
 {-# Language FlexibleInstances #-}
-module Types where
+module Types
+  ( App(..)
+  , AppM
+  -- Figure out how to re-export instances
+  ) where
 
 import ClassyPrelude
 import Control.Monad.Logger
 import Configuration
 import Data.Pool (Pool)
 import Database.Selda.Backend (SeldaConnection)
-import Crypto.Random.Types (MonadRandom(..))
+import Servant.Auth.Server as SAS ()
+import Crypto.JOSE.JWK (JWK)
 
 data App = App { config :: Config
-               , database :: Pool SeldaConnection }
+               , database :: Pool SeldaConnection
+               , jwk :: JWK }
          deriving (Generic)
 
 type AppM = LoggingT (ReaderT App IO)
-
-instance MonadRandom AppM where
-  getRandomBytes = lift . lift . getRandomBytes
