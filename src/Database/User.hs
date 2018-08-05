@@ -8,11 +8,12 @@ import ClassyPrelude
 import Database
 import Database.Schema
 import Database.Selda
-import Control.Lens (over, _Just)
+import Control.Lens (view, over, _Just)
 import Data.Generics.Product
 import Crypto.KDF.BCrypt
 import Crypto.Random.Types (MonadRandom)
 import Control.Monad.Logger
+import Control.Monad (mfilter)
 
 data UserExistsError = UserExistsError
 
@@ -43,7 +44,12 @@ getUser :: (MonadMask m, MonadIO m) => Username -> SeldaT m (Maybe (User NoPassw
 getUser name = over (_Just . field @"password") (const NoPassword) <$> getUser' name
 
 validateUser :: (MonadMask m, MonadIO m) => Username -> PlainPassword -> SeldaT m (Maybe (User NoPassword))
-validateUser name _ = getUser name
+validateUser name (PlainPassword password) =
+  asHidden . mfilter valid <$> getUser' name
+  where
+    valid = validatePassword password' . unHashed . view (field @"password")
+    password' = encodeUtf8 password
+    asHidden = over (_Just . field @"password") (const NoPassword)
 
 getUser' :: (MonadMask m, MonadIO m) => Username -> SeldaT m (Maybe ( User HashedPassword ))
 getUser' name = listToMaybe . fmap fromRel <$> query q
