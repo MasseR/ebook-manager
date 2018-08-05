@@ -3,6 +3,7 @@
 module Database.Channel
   ( userChannels
   , insertChannel
+  , booksChannels
   , Channel(..) )
   where
 
@@ -32,3 +33,13 @@ insertChannel username channel = do
       userId :*: _ :*: user :*: _ <- select (gen users)
       restrict (user .== literal username)
       return userId
+
+booksChannels :: (MonadMask m, MonadIO m) => HashDigest -> SeldaT m [Channel]
+booksChannels contentHash = fromRels <$> query q
+  where
+    q = do
+      channelId :*: contentHash' <- select (gen bookChannels)
+      ch@(channelId' :*: _) <- select (gen channels)
+      restrict (channelId .== channelId')
+      restrict (contentHash' .== literal contentHash)
+      return ch

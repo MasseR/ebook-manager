@@ -20,17 +20,20 @@ import View
 
 import qualified API.Users as Users
 import qualified API.Channels as Channels
+import qualified API.Books as Books
 
 data Index = Index
 
 type API = Get '[HTML] (AppView Index)
       :<|> Users.API
       :<|> Channels.API
+      :<|> Books.API
 
 handler :: ServerT API AppM
 handler = indexHandler
     :<|> Users.handler
     :<|> Channels.handler
+    :<|> Books.handler
 
 instance ToHtml Index where
   toHtml _ = do

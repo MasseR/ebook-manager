@@ -11,7 +11,7 @@
 {-# Language FlexibleInstances #-}
 {-# Language TypeApplications #-}
 {-# Language DataKinds #-}
-module API.Channels (API, handler) where
+module API.Channels (API, handler, JsonChannel(..)) where
 
 import Servant
 import Types

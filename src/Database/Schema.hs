@@ -83,15 +83,15 @@ instance SqlType HashDigest where
 books :: GenTable Book
 books = genTable "books" [ contentHash :- primaryGen ]
 
-data UserBook = UserBook { email :: Text
+data UserBook = UserBook { user :: RowID
                          , book :: HashDigest }
               deriving (Generic, Show)
 
 userBooks :: GenTable UserBook
-userBooks = genTable "user_book" [ (email :: UserBook -> Text) :- fkGen (gen users) userEmail
+userBooks = genTable "user_book" [ (user :: UserBook -> RowID) :- fkGen (gen users) userId
                                  , (book :: UserBook -> HashDigest) :- fkGen (gen books) bookHash ]
   where
-    _ :*: userEmail :*: _ = selectors (gen users)
+    userId :*: _ = selectors (gen users)
     bookHash :*: _ = selectors (gen books)
 
 -- | Categorizing books
