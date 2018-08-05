@@ -19,10 +19,12 @@ executable ebook-manager
   main-is:             Main.hs
   other-modules:       Devel.Main
                      , API
+                     , API.Books
                      , API.Channels
                      , API.Users
                      , Configuration
                      , Database
+                     , Database.Book
                      , Database.Channel
                      , Database.Schema
                      , Database.User
@@ -32,40 +34,41 @@ executable ebook-manager
                      , View
   -- other-extensions:
   build-depends:       base >=4.10 && <4.11
-                     , servant
-                     , monad-logger
-                     , servant-server
-                     , servant-docs
-                     , classy-prelude
-                     , cryptonite
-                     , x509
-                     , x509-store
+                     , aeson
                      , asn1-data
                      , asn1-types
-                     , pem
-                     , mtl
-                     , transformers
                      , bytestring
-                     , text
+                     , classy-prelude
+                     , cryptonite
+                     , dhall
+                     , foreign-store
+                     , generic-lens
+                     , http-api-data
+                     , jose
+                     , lens
+                     , lucid
+                     , monad-logger
+                     , mtl
                      , pandoc
                      , pandoc-types
-                     , foreign-store
-                     , warp
-                     , wai
-                     , dhall
-                     , lucid
-                     , servant-lucid
-                     , lens
-                     , generic-lens
+                     , pem
+                     , process
                      , resource-pool
                      , selda
                      , selda-postgresql
-                     , process
-                     , aeson
-                     , http-api-data
+                     , servant
                      , servant-auth
                      , servant-auth-server
-                     , jose
+                     , servant-docs
+                     , servant-lucid
+                     , servant-server
+                     , servant-multipart
+                     , text
+                     , transformers
+                     , wai
+                     , warp
+                     , x509
+                     , x509-store
   hs-source-dirs:      src
   default-extensions:  DeriveGeneric
                      , NoImplicitPrelude
