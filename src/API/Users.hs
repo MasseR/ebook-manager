@@ -41,7 +41,7 @@ instance FromForm RegisterForm
 instance ToForm RegisterForm
 
 
-type API = Auth '[SA.BasicAuth] SafeUser :> "login" :> Get '[JSON] LoginStatus
+type API = Auth '[SA.BasicAuth, SA.JWT] SafeUser :> "login" :> Get '[JSON] LoginStatus
       :<|> "register" :> ReqBody '[JSON, FormUrlEncoded] RegisterForm :> Post '[JSON] RegisterStatus
 
 handler :: ServerT API AppM

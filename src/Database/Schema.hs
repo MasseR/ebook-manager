@@ -112,8 +112,8 @@ tags = genTable "tags" [ (identifier :: Tag -> RowID) :- autoPrimaryGen
     i :*: _ = selectors (gen users)
 
 channels :: GenTable Channel
-channels = genTable "tags" [ (identifier :: Channel -> RowID) :- autoPrimaryGen
-                           , (owner :: Channel -> RowID) :- fkGen (gen users) i ]
+channels = genTable "channels" [ (identifier :: Channel -> RowID) :- autoPrimaryGen
+                               , (owner :: Channel -> RowID) :- fkGen (gen users) i ]
   where
     i :*: _ = selectors (gen users)
 

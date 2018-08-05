@@ -19,9 +19,11 @@ executable ebook-manager
   main-is:             Main.hs
   other-modules:       Devel.Main
                      , API
+                     , API.Channels
                      , API.Users
                      , Configuration
                      , Database
+                     , Database.Channel
                      , Database.Schema
                      , Database.User
                      , Server

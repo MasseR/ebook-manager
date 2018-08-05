@@ -19,7 +19,7 @@ import Types
 import ClassyPrelude hiding (Handler)
 import Control.Monad.Logger
 import Control.Monad.Except
-import Servant.Auth.Server
+import Servant.Auth.Server as SAS
 import Control.Lens
 import Data.Generics.Product
 
@@ -32,7 +32,8 @@ server app = serveWithContext api cfg (enter server' API.handler :<|> serveDirec
     myKey = view (field @"jwk") app
     jwtCfg = defaultJWTSettings myKey
     authCfg = authCheck app
-    cfg = jwtCfg :. defaultCookieSettings :. authCfg :. EmptyContext
+    cookieSettings = SAS.defaultCookieSettings{cookieIsSecure=SAS.NotSecure}
+    cfg = jwtCfg :. cookieSettings :. authCfg :. EmptyContext
     server' :: AppM :~> Servant.Handler
     server' = NT (Handler . ExceptT . try . (`runReaderT` app) . (runFileLoggingT "logs/server.log"))
     api :: Proxy API

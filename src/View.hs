@@ -8,7 +8,6 @@ module View
 
 import ClassyPrelude
 import Server.Auth
-import Servant.Auth.Server
 import Lucid (HtmlT, ToHtml(..))
 import Lucid.Html5 as H
 

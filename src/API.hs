@@ -19,14 +19,18 @@ import Types
 import View
 
 import qualified API.Users as Users
+import qualified API.Channels as Channels
 
 data Index = Index
 
 type API = Get '[HTML] (AppView Index)
       :<|> Users.API
+      :<|> Channels.API
 
 handler :: ServerT API AppM
-handler = indexHandler :<|> Users.handler
+handler = indexHandler
+    :<|> Users.handler
+    :<|> Channels.handler
 
 instance ToHtml Index where
   toHtml _ = do

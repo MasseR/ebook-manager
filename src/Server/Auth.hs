@@ -5,7 +5,13 @@
 {-# Language TypeOperators #-}
 {-# Language DuplicateRecordFields #-}
 {-# Language TypeApplications #-}
-module Server.Auth where
+{-# Language TemplateHaskell #-}
+module Server.Auth
+  ( SafeUser(..)
+  , authCheck
+  , AuthResult(..)
+  , requireLoggedIn)
+  where
 
 import ClassyPrelude
 import Servant.Auth.Server as SAS
@@ -16,6 +22,8 @@ import Database
 import Types
 import Control.Lens (view)
 import Data.Generics.Product
+import Servant (err401)
+import Control.Monad.Logger
 
 -- generic-lens can convert similar types to this
 -- I'm trying out servant-auth-server which uses a jwt style login. IIRC anyone
@@ -44,3 +52,7 @@ authCheck app (BasicAuthData username password) = flip runReaderT app $
     username' = Username $ decodeUtf8 username
     password' = PlainPassword $ decodeUtf8 password
     authenticated = SAS.Authenticated . view (super @SafeUser)
+
+requireLoggedIn :: (MonadLogger m, MonadThrow m, Monad m) => (SafeUser -> m a) -> AuthResult SafeUser -> m a
+requireLoggedIn f (Authenticated user) = f user
+requireLoggedIn _ u = $logError (pack (show u)) >> throwM err401
