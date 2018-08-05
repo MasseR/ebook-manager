@@ -40,8 +40,36 @@ instance SqlType Username where
   fromSql _ = error "fromSql: Bad username"
   defaultValue = mkLit (Username "")
 
+newtype UserID = UserID {unUserID :: Int} deriving (Show)
 
-data User pass = User { identifier :: RowID
+newtype BookID = BookID {unBookID :: Int} deriving (Show)
+
+newtype ChannelID = ChannelID {unChannelID :: Int} deriving (Show)
+
+newtype TagID = TagID {unTagID :: Int} deriving (Show)
+
+instance SqlType UserID where
+  mkLit = LCustom . LInt . unUserID
+  fromSql (SqlInt x) = UserID x
+  fromSql _ = error "fromSql: Bad userid"
+  defaultValue = mkLit (UserID (-1))
+instance SqlType BookID where
+  mkLit = LCustom . LInt . unBookID
+  fromSql (SqlInt x) = BookID x
+  fromSql _ = error "fromSql: Bad bookid"
+  defaultValue = mkLit (BookID (-1))
+instance SqlType ChannelID where
+  mkLit = LCustom . LInt . unChannelID
+  fromSql (SqlInt x) = ChannelID x
+  fromSql _ = error "fromSql: Bad channelid"
+  defaultValue = mkLit (ChannelID (-1))
+instance SqlType TagID where
+  mkLit = LCustom . LInt . unTagID
+  fromSql (SqlInt x) = TagID x
+  fromSql _ = error "fromSql: Bad tagid"
+  defaultValue = mkLit (TagID (-1))
+
+data User pass = User { identifier :: UserID
                       , email :: Email
                       , username :: Username
                       , role :: Role
@@ -64,10 +92,11 @@ instance SqlType Role where
 users :: GenTable (User HashedPassword)
 users = genTable "users" [ (email :: User HashedPassword -> Email) :- uniqueGen
                          , username :- uniqueGen
-                         , (identifier :: User HashedPassword -> RowID) :- autoPrimaryGen ]
+                         , (identifier :: User HashedPassword -> UserID) :- autoPrimaryGen ]
 
 -- | Book type
 newtype HashDigest = HashDigest { unHex :: Text } deriving Show
+-- XXX: Add an identifier for the book
 data Book = Book { contentHash :: HashDigest
                  , contentType :: Text
                  , title :: Maybe Text
@@ -83,57 +112,57 @@ instance SqlType HashDigest where
 books :: GenTable Book
 books = genTable "books" [ contentHash :- primaryGen ]
 
-data UserBook = UserBook { user :: RowID
+data UserBook = UserBook { user :: UserID
                          , book :: HashDigest }
               deriving (Generic, Show)
 
 userBooks :: GenTable UserBook
-userBooks = genTable "user_book" [ (user :: UserBook -> RowID) :- fkGen (gen users) userId
+userBooks = genTable "user_book" [ (user :: UserBook -> UserID) :- fkGen (gen users) userId
                                  , (book :: UserBook -> HashDigest) :- fkGen (gen books) bookHash ]
   where
     userId :*: _ = selectors (gen users)
     bookHash :*: _ = selectors (gen books)
 
 -- | Categorizing books
-data Tag = Tag { identifier :: RowID
+data Tag = Tag { identifier :: TagID
                , tag :: Text
-               , owner :: RowID }
+               , owner :: UserID }
          deriving (Show, Generic)
 
-data Channel = Channel { identifier :: RowID
+data Channel = Channel { identifier :: ChannelID
                        , channel :: Text
-                       , owner :: RowID }
+                       , owner :: UserID }
              deriving (Show, Generic)
 
 tags :: GenTable Tag
-tags = genTable "tags" [ (identifier :: Tag -> RowID) :- autoPrimaryGen
-                       , (owner :: Tag -> RowID) :- fkGen (gen users) i ]
+tags = genTable "tags" [ (identifier :: Tag -> TagID) :- autoPrimaryGen
+                       , (owner :: Tag -> UserID) :- fkGen (gen users) i ]
   where
     i :*: _ = selectors (gen users)
 
 channels :: GenTable Channel
-channels = genTable "channels" [ (identifier :: Channel -> RowID) :- autoPrimaryGen
-                               , (owner :: Channel -> RowID) :- fkGen (gen users) i ]
+channels = genTable "channels" [ (identifier :: Channel -> ChannelID) :- autoPrimaryGen
+                               , (owner :: Channel -> UserID) :- fkGen (gen users) i ]
   where
     i :*: _ = selectors (gen users)
 
-data BookTag = BookTag { tag :: RowID
+data BookTag = BookTag { tag :: TagID
                        , book :: HashDigest }
              deriving (Show, Generic)
 
-data BookChannel = BookChannel { channel :: RowID
+data BookChannel = BookChannel { channel :: ChannelID
                                , book :: HashDigest }
                  deriving (Show, Generic)
 
 bookTags :: GenTable BookTag
-bookTags = genTable "book_tags" [ (tag :: BookTag -> RowID) :- fkGen (gen tags) i
+bookTags = genTable "book_tags" [ (tag :: BookTag -> TagID) :- fkGen (gen tags) i
                                 , (book :: BookTag -> HashDigest) :- fkGen (gen books) h ]
   where
     i :*: _ = selectors (gen tags)
     h :*: _ = selectors (gen books)
 
 bookChannels :: GenTable BookChannel
-bookChannels = genTable "book_channels" [ (channel :: BookChannel -> RowID) :- fkGen (gen channels) i
+bookChannels = genTable "book_channels" [ (channel :: BookChannel -> ChannelID) :- fkGen (gen channels) i
                                         , (book :: BookChannel -> HashDigest) :- fkGen (gen books) h ]
   where
     i :*: _ = selectors (gen channels)

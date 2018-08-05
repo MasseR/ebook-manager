@@ -32,12 +32,15 @@ data JsonBook = JsonBook { contentType :: Text
                          , channels :: [JsonChannel] }
               deriving (Generic, Show)
 
+
 instance ToJSON JsonBook
 instance FromJSON JsonBook
 
 type API = Auth '[SA.BasicAuth, SA.JWT] SafeUser :> BaseAPI
 
 type BaseAPI = "books" :> Get '[JSON] [JsonBook]
+      --  :<|> "books" :> ReqBody '[JSON] JsonBook :> PUT JsonBook
+      --  :<|> "books" :> Param "book_id" BookID :> ReqBody '[JSON] JsonBook :> PUT JsonBook
 
 handler :: ServerT API AppM
 handler user = listBooksHandler user
