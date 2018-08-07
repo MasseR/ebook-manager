@@ -49,6 +49,6 @@ listBooksHandler :: AuthResult SafeUser -> AppM [JsonBook]
 listBooksHandler = requireLoggedIn $ \user -> do
   runDB (usersBooks (view (field @"username") user) >>= mapM augment)
     where
-      augment Book{..} = do
-        channels <- fmap (\Channel{..} -> JsonChannel{..}) <$> booksChannels contentHash
+      augment Book{identifier=bookId,..} = do
+        channels <- fmap (\Channel{..} -> JsonChannel{..}) <$> booksChannels bookId
         pure JsonBook{..}

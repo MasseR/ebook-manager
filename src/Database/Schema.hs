@@ -97,7 +97,8 @@ users = genTable "users" [ (email :: User HashedPassword -> Email) :- uniqueGen
 -- | Book type
 newtype HashDigest = HashDigest { unHex :: Text } deriving Show
 -- XXX: Add an identifier for the book
-data Book = Book { contentHash :: HashDigest
+data Book = Book { identifier :: BookID
+                 , contentHash :: HashDigest
                  , contentType :: Text
                  , title :: Maybe Text
                  , description :: Maybe Text }
@@ -110,15 +111,15 @@ instance SqlType HashDigest where
   defaultValue = mkLit (HashDigest "") -- Doesn't really make sense
 
 books :: GenTable Book
-books = genTable "books" [ contentHash :- primaryGen ]
+books = genTable "books" [ (identifier :: Book -> BookID) :- primaryGen ]
 
 data UserBook = UserBook { user :: UserID
-                         , book :: HashDigest }
+                         , book :: BookID }
               deriving (Generic, Show)
 
 userBooks :: GenTable UserBook
 userBooks = genTable "user_book" [ (user :: UserBook -> UserID) :- fkGen (gen users) userId
-                                 , (book :: UserBook -> HashDigest) :- fkGen (gen books) bookHash ]
+                                 , (book :: UserBook -> BookID) :- fkGen (gen books) bookHash ]
   where
     userId :*: _ = selectors (gen users)
     bookHash :*: _ = selectors (gen books)
@@ -147,23 +148,23 @@ channels = genTable "channels" [ (identifier :: Channel -> ChannelID) :- autoPri
     i :*: _ = selectors (gen users)
 
 data BookTag = BookTag { tag :: TagID
-                       , book :: HashDigest }
+                       , book :: BookID }
              deriving (Show, Generic)
 
 data BookChannel = BookChannel { channel :: ChannelID
-                               , book :: HashDigest }
+                               , book :: BookID }
                  deriving (Show, Generic)
 
 bookTags :: GenTable BookTag
 bookTags = genTable "book_tags" [ (tag :: BookTag -> TagID) :- fkGen (gen tags) i
-                                , (book :: BookTag -> HashDigest) :- fkGen (gen books) h ]
+                                , (book :: BookTag -> BookID) :- fkGen (gen books) h ]
   where
     i :*: _ = selectors (gen tags)
     h :*: _ = selectors (gen books)
 
 bookChannels :: GenTable BookChannel
 bookChannels = genTable "book_channels" [ (channel :: BookChannel -> ChannelID) :- fkGen (gen channels) i
-                                        , (book :: BookChannel -> HashDigest) :- fkGen (gen books) h ]
+                                        , (book :: BookChannel -> BookID) :- fkGen (gen books) h ]
   where
     i :*: _ = selectors (gen channels)
     h :*: _ = selectors (gen books)

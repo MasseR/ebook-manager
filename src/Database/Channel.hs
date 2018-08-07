@@ -34,7 +34,7 @@ insertChannel username channel = do
       restrict (user .== literal username)
       return userId
 
-booksChannels :: (MonadMask m, MonadIO m) => HashDigest -> SeldaT m [Channel]
+booksChannels :: (MonadMask m, MonadIO m) => BookID -> SeldaT m [Channel]
 booksChannels contentHash = fromRels <$> query q
   where
     q = do
