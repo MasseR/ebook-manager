@@ -42,7 +42,7 @@ instance SqlType Username where
 
 newtype UserID = UserID {unUserID :: Int} deriving (Show)
 
-newtype BookID = BookID {unBookID :: Int} deriving (Show)
+newtype BookID = BookID {unBookID :: Int} deriving (Show, ToJSON, FromJSON, FromHttpApiData)
 
 newtype ChannelID = ChannelID {unChannelID :: Int} deriving (Show)
 
@@ -52,6 +52,7 @@ instance SqlType UserID where
   mkLit = LCustom . LInt . unUserID
   fromSql (SqlInt x) = UserID x
   fromSql _ = error "fromSql: Bad userid"
+  sqlType _ = TRowID
   defaultValue = mkLit (UserID (-1))
 instance SqlType BookID where
   mkLit = LCustom . LInt . unBookID
@@ -98,7 +99,7 @@ users = genTable "users" [ (email :: User HashedPassword -> Email) :- uniqueGen
 newtype HashDigest = HashDigest { unHex :: Text } deriving Show
 -- XXX: Add an identifier for the book
 data Book = Book { identifier :: BookID
-                 , contentHash :: HashDigest
+                 , contentHash :: Maybe HashDigest
                  , contentType :: Text
                  , title :: Maybe Text
                  , description :: Maybe Text }
@@ -111,7 +112,7 @@ instance SqlType HashDigest where
   defaultValue = mkLit (HashDigest "") -- Doesn't really make sense
 
 books :: GenTable Book
-books = genTable "books" [ (identifier :: Book -> BookID) :- primaryGen ]
+books = genTable "books" [ (identifier :: Book -> BookID) :- autoPrimaryGen ]
 
 data UserBook = UserBook { user :: UserID
                          , book :: BookID }
