@@ -45,7 +45,6 @@ develMain = do
     migrate = do
       tryCreateTable (gen users)
       tryCreateTable (gen books)
-      tryCreateTable (gen userBooks)
       tryCreateTable (gen tags)
       tryCreateTable (gen channels)
       tryCreateTable (gen bookTags)

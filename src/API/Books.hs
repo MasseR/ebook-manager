@@ -59,7 +59,7 @@ handler user = listBooksHandler user :<|> postBookMetaHandler user :<|> putBookM
 
 postBookMetaHandler :: AuthResult SafeUser -> PostBook -> AppM JsonBook
 postBookMetaHandler auth PostBook{..} = flip requireLoggedIn auth $ \SafeUser{username} -> do
-  mIdentifier <- runDB $ insertBook username Book{identifier=def,contentHash=Nothing,..}
+  mIdentifier <- runDB $ insertBook InsertBook{owner=username,..}
   maybe (throwM err403{errBody="Could not insert book"}) (\identifier -> pure JsonBook{..}) mIdentifier
 
 
@@ -70,6 +70,6 @@ listBooksHandler :: AuthResult SafeUser -> AppM [JsonBook]
 listBooksHandler = requireLoggedIn $ \user -> do
   runDB (usersBooks (view (field @"username") user) >>= mapM augment)
     where
-      augment Book{identifier=bookId,..} = do
+      augment Book{identifier=bookId,contentType,title,description} = do
         channels <- fmap (\Channel{..} -> JsonChannel{..}) <$> booksChannels bookId
         pure JsonBook{identifier=bookId,..}

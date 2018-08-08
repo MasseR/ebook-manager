@@ -102,7 +102,8 @@ data Book = Book { identifier :: BookID
                  , contentHash :: Maybe HashDigest
                  , contentType :: Text
                  , title :: Maybe Text
-                 , description :: Maybe Text }
+                 , description :: Maybe Text
+                 , owner :: UserID }
           deriving (Show, Generic)
 
 instance SqlType HashDigest where
@@ -112,18 +113,10 @@ instance SqlType HashDigest where
   defaultValue = mkLit (HashDigest "") -- Doesn't really make sense
 
 books :: GenTable Book
-books = genTable "books" [ (identifier :: Book -> BookID) :- autoPrimaryGen ]
-
-data UserBook = UserBook { user :: UserID
-                         , book :: BookID }
-              deriving (Generic, Show)
-
-userBooks :: GenTable UserBook
-userBooks = genTable "user_book" [ (user :: UserBook -> UserID) :- fkGen (gen users) userId
-                                 , (book :: UserBook -> BookID) :- fkGen (gen books) bookHash ]
+books = genTable "books" [ (identifier :: Book -> BookID) :- autoPrimaryGen
+                         , (owner :: Book -> UserID) :- fkGen (gen users) userId ]
   where
     userId :*: _ = selectors (gen users)
-    bookHash :*: _ = selectors (gen books)
 
 -- | Categorizing books
 data Tag = Tag { identifier :: TagID

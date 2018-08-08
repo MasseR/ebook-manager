@@ -17,7 +17,9 @@ CREATE TABLE public.books (
   "contentType" text NOT NULL,
   title text NULL,
   description text NULL,
-  CONSTRAINT books_pkey PRIMARY KEY (identifier)
+  owner bigserial NOT NULL,
+  CONSTRAINT books_pkey PRIMARY KEY (identifier),
+  CONSTRAINT fk_books_owner FOREIGN KEY (owner) REFERENCES users(identifier)
 )
 WITH (
   OIDS=FALSE
@@ -55,15 +57,6 @@ CREATE TABLE public.book_tags (
   tag int8 NOT NULL,
   book int8 NOT NULL,
   CONSTRAINT fk0_tag FOREIGN KEY (tag) REFERENCES tags(identifier),
-  CONSTRAINT fk1_book FOREIGN KEY (book) REFERENCES books(identifier)
-)
-WITH (
-  OIDS=FALSE
-) ;
-CREATE TABLE public.user_book (
-  "user" bigserial NOT NULL,
-  book int8 NOT NULL,
-  CONSTRAINT fk0_user FOREIGN KEY ("user") REFERENCES users(identifier),
   CONSTRAINT fk1_book FOREIGN KEY (book) REFERENCES books(identifier)
 )
 WITH (
