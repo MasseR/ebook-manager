@@ -13,7 +13,7 @@ WITH (
 ) ;
 CREATE TABLE public.books (
   identifier bigserial NOT NULL,
-  "contentHash" text NULL,
+  "contentHash" bytea NULL,
   "contentType" text NOT NULL,
   title text NULL,
   description text NULL,

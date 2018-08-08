@@ -96,7 +96,7 @@ users = genTable "users" [ (email :: User HashedPassword -> Email) :- uniqueGen
                          , (identifier :: User HashedPassword -> UserID) :- autoPrimaryGen ]
 
 -- | Book type
-newtype HashDigest = HashDigest { unHex :: Text } deriving Show
+newtype HashDigest = HashDigest { unHex :: ByteString } deriving Show
 -- XXX: Add an identifier for the book
 data Book = Book { identifier :: BookID
                  , contentHash :: Maybe HashDigest
@@ -107,8 +107,8 @@ data Book = Book { identifier :: BookID
           deriving (Show, Generic)
 
 instance SqlType HashDigest where
-  mkLit = LCustom . LText . unHex
-  fromSql (SqlString x) = HashDigest x
+  mkLit = LCustom . LBlob . unHex
+  fromSql (SqlBlob x) = HashDigest x
   fromSql _ = error "fromSql: Not a valid hash digest"
   defaultValue = mkLit (HashDigest "") -- Doesn't really make sense
 

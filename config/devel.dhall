@@ -6,5 +6,8 @@
     , password = "devel"
     , host = "localhost"
     , database = "postgres"
+  },
+  store = {
+    path = "/tmp/ebooks/"
   }
 }

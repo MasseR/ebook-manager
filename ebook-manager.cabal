@@ -28,6 +28,7 @@ executable ebook-manager
                      , Database.Channel
                      , Database.Schema
                      , Database.User
+                     , Datastore
                      , Server
                      , Server.Auth
                      , Types
@@ -41,12 +42,14 @@ executable ebook-manager
                      , classy-prelude
                      , cryptonite
                      , dhall
+                     , directory
                      , foreign-store
                      , generic-lens
                      , http-api-data
                      , jose
                      , lens
                      , lucid
+                     , memory
                      , monad-logger
                      , mtl
                      , pandoc
@@ -61,8 +64,8 @@ executable ebook-manager
                      , servant-auth-server
                      , servant-docs
                      , servant-lucid
-                     , servant-server
                      , servant-multipart
+                     , servant-server
                      , text
                      , transformers
                      , wai

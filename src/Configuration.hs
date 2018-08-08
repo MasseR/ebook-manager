@@ -12,8 +12,12 @@ data Pg = Pg { username :: Text
              , database :: Text }
         deriving (Show, Generic)
 
+newtype Store = Store { path :: Text } deriving (Show, Generic)
 
-newtype Config = Config { database :: Pg } deriving (Show, Generic)
+data Config = Config { database :: Pg
+                     , store :: Store }
+            deriving (Show, Generic)
 
 instance Interpret Pg
+instance Interpret Store
 instance Interpret Config
