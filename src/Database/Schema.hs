@@ -42,7 +42,7 @@ instance SqlType Username where
 
 newtype UserID = UserID {unUserID :: Int} deriving (Show)
 
-newtype BookID = BookID {unBookID :: Int} deriving (Show, ToJSON, FromJSON, FromHttpApiData)
+newtype BookID = BookID {unBookID :: Int} deriving (Show, ToJSON, FromJSON, FromHttpApiData, Eq, Ord)
 
 newtype ChannelID = ChannelID {unChannelID :: Int} deriving (Show)
 
