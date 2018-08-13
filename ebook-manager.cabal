@@ -20,15 +20,18 @@ executable ebook-manager
   other-modules:       Devel.Main
                      , API
                      , API.Books
+                     , API.Catalogue
                      , API.Channels
                      , API.Users
                      , Configuration
+                     , Data.Versioned
                      , Database
                      , Database.Book
                      , Database.Channel
                      , Database.Schema
                      , Database.User
                      , Datastore
+                     , Servant.XML
                      , Server
                      , Server.Auth
                      , Types
@@ -46,6 +49,7 @@ executable ebook-manager
                      , foreign-store
                      , generic-lens
                      , http-api-data
+                     , http-media
                      , jose
                      , lens
                      , lucid
@@ -72,6 +76,8 @@ executable ebook-manager
                      , warp
                      , x509
                      , x509-store
+                     , xml-conduit
+                     , xml-hamlet
   hs-source-dirs:      src
   default-extensions:  DeriveGeneric
                      , NoImplicitPrelude

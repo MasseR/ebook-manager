@@ -44,7 +44,7 @@ newtype UserID = UserID {unUserID :: Int} deriving (Show)
 
 newtype BookID = BookID {unBookID :: Int} deriving (Show, ToJSON, FromJSON, FromHttpApiData, Eq, Ord)
 
-newtype ChannelID = ChannelID {unChannelID :: Int} deriving (Show)
+newtype ChannelID = ChannelID {unChannelID :: Int} deriving (Show, ToHttpApiData, FromHttpApiData)
 
 newtype TagID = TagID {unTagID :: Int} deriving (Show)
 

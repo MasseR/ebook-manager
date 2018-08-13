@@ -4,7 +4,8 @@ module Database.Channel
   ( userChannels
   , insertChannel
   , booksChannels
-  , Channel(..) )
+  , Channel(..)
+  , ChannelID )
   where
 
 import ClassyPrelude

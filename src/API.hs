@@ -21,19 +21,24 @@ import View
 import qualified API.Users as Users
 import qualified API.Channels as Channels
 import qualified API.Books as Books
+import qualified API.Catalogue as Catalogue
 
 data Index = Index
 
 type API = Get '[HTML] (AppView Index)
       :<|> Users.API
-      :<|> Channels.API
-      :<|> Books.API
+      :<|> "api" :> Channels.API
+      :<|> "api" :> Books.API
+      :<|> "api" :> "1" :> Catalogue.VersionedAPI 1
+      :<|> "api" :> "current" :> Catalogue.VersionedAPI 1
 
 handler :: ServerT API AppM
 handler = indexHandler
     :<|> Users.handler
     :<|> Channels.handler
     :<|> Books.handler
+    :<|> Catalogue.handler
+    :<|> Catalogue.handler
 
 instance ToHtml Index where
   toHtml _ = do
