@@ -28,6 +28,7 @@ executable ebook-manager
                      , Database
                      , Database.Book
                      , Database.Channel
+                     , Database.Tag
                      , Database.Schema
                      , Database.User
                      , Datastore

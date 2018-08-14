@@ -11,6 +11,7 @@ module Database
   , fromRel
   , fromRels
   , toRel
+  , transaction
   , SeldaT )
   where
 
@@ -18,7 +19,7 @@ import Data.Generics.Product
 import Control.Lens (view)
 import Data.Pool (Pool, withResource)
 import Database.Selda.Backend (SeldaConnection, runSeldaT, SeldaT)
-import Database.Selda (query, select)
+import Database.Selda (query, select, transaction)
 import Database.Selda.Generic (gen, fromRel, fromRels, toRel)
 import ClassyPrelude
 

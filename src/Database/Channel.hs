@@ -36,11 +36,11 @@ insertChannel username channel = do
       return userId
 
 booksChannels :: (MonadMask m, MonadIO m) => BookID -> SeldaT m [Channel]
-booksChannels contentHash = fromRels <$> query q
+booksChannels bookId = fromRels <$> query q
   where
     q = do
-      channelId :*: contentHash' <- select (gen bookChannels)
+      channelId :*: bookId' <- select (gen bookChannels)
       ch@(channelId' :*: _) <- select (gen channels)
       restrict (channelId .== channelId')
-      restrict (contentHash' .== literal contentHash)
+      restrict (bookId' .== literal bookId)
       return ch

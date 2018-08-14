@@ -21,9 +21,9 @@ import ClassyPrelude
 import Server.Auth
 import Servant.Auth as SA
 import Data.Aeson
-import API.Channels (JsonChannel(..))
 import Database.Book
 import Database.Channel
+import Database.Tag
 import Database
 import Control.Lens
 import Data.Generics.Product
@@ -38,13 +38,15 @@ data JsonBook = JsonBook { identifier :: BookID
                          , contentType :: Text
                          , title :: Maybe Text
                          , description :: Maybe Text
-                         , channels :: [JsonChannel] }
+                         , channels :: [Text]
+                         , tags :: [Text] }
               deriving (Generic, Show)
 
 data PostBook = PostBook { contentType :: Text
                          , title :: Maybe Text
                          , description :: Maybe Text
-                         , channels :: [JsonChannel] }
+                         , channels :: [Text]
+                         , tags :: [Text] }
               deriving (Generic, Show)
 
 
@@ -105,5 +107,6 @@ listBooksHandler = requireLoggedIn $ \user -> do
   runDB (usersBooks (view (field @"username") user) >>= mapM augment)
     where
       augment Book{identifier=bookId,contentType,title,description} = do
-        channels <- fmap (\Channel{..} -> JsonChannel{..}) <$> booksChannels bookId
+        channels <- fmap (view (field @"channel")) <$> booksChannels bookId
+        tags <- fmap (view (field @"tag")) <$> booksTags bookId
         pure JsonBook{identifier=bookId,..}

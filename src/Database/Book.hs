@@ -18,10 +18,12 @@ module Database.Book
   , BookID) where
 
 import ClassyPrelude
-import Database.Schema
+import Database.Schema (books, users, Username, Book(..), BookID(..), UserID, HashDigest(..))
 import Database
 import Database.Selda
 import Database.Selda.Generic
+
+import Database.Tag (attachTag)
 
 usersBooks :: (MonadSelda m, MonadMask m, MonadIO m) => Username -> m [Book]
 usersBooks username = fromRels <$> query q
@@ -64,7 +66,8 @@ data UpdateBook = UpdateBook { identifier :: BookID
                              , contentType :: Text
                              , title :: Maybe Text
                              , description :: Maybe Text
-                             , owner :: Username }
+                             , owner :: Username
+                             , tags :: [Text]}
 
 bookExists :: (MonadSelda m, MonadMask m, MonadIO m) => BookID -> m Bool
 bookExists identifier = not . null <$> query q
@@ -88,13 +91,19 @@ bookOwner' identifier username = do
 
 updateBook :: (MonadSelda m, MonadMask m, MonadIO m) => UpdateBook -> m (Maybe UpdateBook)
 updateBook book@UpdateBook{..} = do
-  mUserId <- query (bookOwner' identifier owner)
-  forM (listToMaybe mUserId) $ \_userId -> do
-    update_ (gen books) predicate (\b -> b `with` [ pContentType := literal contentType
-                                                  , pTitle := literal title
-                                                  , pDescription := literal description ])
-    return book
+  connectChannels
+  connectTags
+  updateBook'
   where
+    connectTags = mapM_ (attachTag owner identifier) tags
+    connectChannels = return ()
+    updateBook' = do
+      mUserId <- query (bookOwner' identifier owner)
+      forM (listToMaybe mUserId) $ \_userId -> do
+        update_ (gen books) predicate (\b -> b `with` [ pContentType := literal contentType
+                                                      , pTitle := literal title
+                                                      , pDescription := literal description ])
+        return book
     _ :*: _ :*: pContentType :*: pTitle :*: pDescription :*: _ = selectors (gen books)
     predicate (bookId :*: _) = bookId .== literal identifier
 
