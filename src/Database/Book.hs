@@ -23,7 +23,8 @@ import Database
 import Database.Selda
 import Database.Selda.Generic
 
-import Database.Tag (attachTag)
+import Database.Tag (attachTag, clearTags)
+import Database.Channel (attachChannel, clearChannels)
 
 usersBooks :: (MonadSelda m, MonadMask m, MonadIO m) => Username -> m [Book]
 usersBooks username = fromRels <$> query q
@@ -67,7 +68,8 @@ data UpdateBook = UpdateBook { identifier :: BookID
                              , title :: Maybe Text
                              , description :: Maybe Text
                              , owner :: Username
-                             , tags :: [Text]}
+                             , tags :: [Text]
+                             , channels :: [Text] }
 
 bookExists :: (MonadSelda m, MonadMask m, MonadIO m) => BookID -> m Bool
 bookExists identifier = not . null <$> query q
@@ -91,12 +93,12 @@ bookOwner' identifier username = do
 
 updateBook :: (MonadSelda m, MonadMask m, MonadIO m) => UpdateBook -> m (Maybe UpdateBook)
 updateBook book@UpdateBook{..} = do
-  connectChannels
-  connectTags
+  clearTags identifier >> connectTags
+  clearChannels identifier >> connectChannels
   updateBook'
   where
     connectTags = mapM_ (attachTag owner identifier) tags
-    connectChannels = return ()
+    connectChannels = mapM_ (attachChannel owner identifier) channels
     updateBook' = do
       mUserId <- query (bookOwner' identifier owner)
       forM (listToMaybe mUserId) $ \_userId -> do

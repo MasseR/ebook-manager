@@ -1,8 +1,11 @@
 {-# Language TypeApplications #-}
 {-# Language DataKinds #-}
+{-# Language NamedFieldPuns #-}
 module Database.Channel
   ( userChannels
   , insertChannel
+  , attachChannel
+  , clearChannels
   , booksChannels
   , Channel(..)
   , ChannelID )
@@ -12,6 +15,7 @@ import ClassyPrelude
 import Database.Schema
 import Database
 import Database.Selda
+import Database.Selda.Generic
 
 userChannels :: (MonadMask m, MonadIO m) => Username -> SeldaT m [Channel]
 userChannels username = fromRels <$> query q
@@ -44,3 +48,25 @@ booksChannels bookId = fromRels <$> query q
       restrict (channelId .== channelId')
       restrict (bookId' .== literal bookId)
       return ch
+
+attachChannel :: (MonadMask m, MonadIO m, MonadSelda m) => Username -> BookID -> Text -> m ()
+attachChannel username bookId channel = do
+  -- XXX: test what happens if channel doesn't exist
+  [Channel{identifier}] <- fromRels <$> query channelQ
+  whenM (null <$> query (attachQ identifier)) $
+    void $ insertGen bookChannels [BookChannel identifier bookId]
+  where
+    attachQ channelId = do
+      (channelId' :*: bookId') <- select (gen bookChannels)
+      restrict (channelId' .== literal channelId .&& bookId' .== literal bookId)
+      return channelId'
+    channelQ = do
+      userId :*: _ :*: username' :*: _ <- select (gen users)
+      ch@(_ :*: channel' :*: owner) <- select (gen channels)
+      restrict (username' .== literal username)
+      restrict (owner .== userId)
+      restrict (channel' .== literal channel)
+      return ch
+
+clearChannels :: (MonadMask m, MonadIO m, MonadSelda m) => BookID -> m Int
+clearChannels bookId = deleteFrom (gen bookChannels) (\(_ :*: bookId') -> bookId' .== literal bookId)

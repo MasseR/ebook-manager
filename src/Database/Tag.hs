@@ -8,6 +8,7 @@ module Database.Tag
   , booksTags
   , attachTag
   , upsertTag
+  , clearTags
   , Tag(..) ) where
 
 import ClassyPrelude
@@ -55,3 +56,7 @@ attachTag username bookId tag = do
       (tagId' :*: bookId') <- select (gen bookTags)
       restrict (tagId' .== literal tagId .&& bookId' .== literal bookId)
       return tagId'
+
+clearTags :: (MonadMask m, MonadIO m, MonadSelda m) => BookID -> m Int
+clearTags bookId = deleteFrom (gen bookTags) (\(_ :*: bookId') -> bookId' .== literal bookId)
+
