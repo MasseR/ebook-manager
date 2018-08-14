@@ -42,7 +42,7 @@ instance SqlType Username where
 
 newtype UserID = UserID {unUserID :: Int} deriving (Show)
 
-newtype BookID = BookID {unBookID :: Int} deriving (Show, ToJSON, FromJSON, FromHttpApiData, Eq, Ord)
+newtype BookID = BookID {unBookID :: Int} deriving (Show, ToJSON, FromJSON, FromHttpApiData, Eq, Ord, ToHttpApiData)
 
 newtype ChannelID = ChannelID {unChannelID :: Int} deriving (Show, ToHttpApiData, FromHttpApiData, ToJSON, FromJSON)
 
@@ -101,7 +101,7 @@ newtype HashDigest = HashDigest { unHex :: ByteString } deriving Show
 data Book = Book { identifier :: BookID
                  , contentHash :: Maybe HashDigest
                  , contentType :: Text
-                 , title :: Maybe Text
+                 , title :: Text
                  , description :: Maybe Text
                  , owner :: UserID }
           deriving (Show, Generic)
