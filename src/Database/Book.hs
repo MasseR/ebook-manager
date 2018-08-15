@@ -23,8 +23,11 @@ import Database
 import Database.Selda
 import Database.Selda.Generic
 
-import Database.Tag (attachTag, clearTags)
-import Database.Channel (attachChannel, clearChannels)
+import Control.Lens (view)
+import Data.Generics.Product
+
+import Database.Tag (booksTags, attachTag, clearTags)
+import Database.Channel (booksChannels, attachChannel, clearChannels)
 
 usersBooks :: (MonadSelda m, MonadMask m, MonadIO m) => Username -> m [Book]
 usersBooks username = fromRels <$> query q
@@ -70,6 +73,7 @@ data UpdateBook = UpdateBook { identifier :: BookID
                              , owner :: Username
                              , tags :: [Text]
                              , channels :: [Text] }
+                deriving (Show, Generic)
 
 bookExists :: (MonadSelda m, MonadMask m, MonadIO m) => BookID -> m Bool
 bookExists identifier = not . null <$> query q
@@ -92,22 +96,31 @@ bookOwner' identifier username = do
   return (userId :*: bookId)
 
 updateBook :: (MonadSelda m, MonadMask m, MonadIO m) => UpdateBook -> m (Maybe UpdateBook)
-updateBook book@UpdateBook{..} = do
+updateBook UpdateBook{..} = do
   clearTags identifier >> connectTags
   clearChannels identifier >> connectChannels
   updateBook'
+  getUpdateBook identifier owner
   where
     connectTags = mapM_ (attachTag owner identifier) tags
     connectChannels = mapM_ (attachChannel owner identifier) channels
     updateBook' = do
       mUserId <- query (bookOwner' identifier owner)
-      forM (listToMaybe mUserId) $ \_userId -> do
+      forM_ (listToMaybe mUserId) $ \_userId -> do
         update_ (gen books) predicate (\b -> b `with` [ pContentType := literal contentType
                                                       , pTitle := literal title
                                                       , pDescription := literal description ])
-        return book
     _ :*: _ :*: pContentType :*: pTitle :*: pDescription :*: _ = selectors (gen books)
     predicate (bookId :*: _) = bookId .== literal identifier
+
+
+getUpdateBook :: (MonadMask m, MonadIO m, MonadSelda m) => BookID -> Username -> m (Maybe UpdateBook)
+getUpdateBook bookId username = do
+  mBook <- getBook bookId username
+  forM mBook $ \Book{..} -> do
+    channels <- map (view (field @"channel")) <$> booksChannels bookId
+    tags <- map (view (field @"tag")) <$> booksTags bookId
+    return UpdateBook{owner=username,..}
 
 setContent :: (MonadSelda m, MonadMask m, MonadIO m) => BookID -> Username -> HashDigest -> m ()
 setContent identifier owner digest = do

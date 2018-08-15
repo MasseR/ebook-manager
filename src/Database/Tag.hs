@@ -16,15 +16,13 @@ import Database.Schema
 import Database
 import Database.Selda
 import Database.Selda.Generic
+import Control.Monad.Trans.Maybe
 
-upsertTag :: (MonadMask m, MonadIO m, MonadSelda m) => Username -> Text -> m Tag
-upsertTag username tag = do
-  -- I want this to error out if some data is invariant is wrong and roll back
-  -- the transaction. Also as a side note, run this in a transaction plz
-  [userId] <- query userQ
-  void $ upsert (gen tags) (predicate userId) id [toRel (Tag def tag userId)]
-  [t] <- fromRels <$> query (tagQ userId)
-  return t
+upsertTag :: (MonadMask m, MonadIO m, MonadSelda m) => Username -> Text -> m (Maybe Tag)
+upsertTag username tag = runMaybeT $ do
+  userId <- MaybeT (listToMaybe <$> query userQ)
+  void $ lift $ upsert (gen tags) (predicate userId) id [toRel (Tag def tag userId)]
+  MaybeT (listToMaybe . fromRels <$> query (tagQ userId))
   where
     predicate userId (_ :*: tag' :*: owner) = tag' .== literal tag .&& owner .== literal userId
     tagQ userId = do
@@ -48,9 +46,10 @@ booksTags bookId = fromRels <$> query q
 
 attachTag :: (MonadMask m, MonadIO m, MonadSelda m) => Username -> BookID -> Text -> m ()
 attachTag username bookId tag = do
-  Tag{identifier} <- upsertTag username tag
-  whenM (null <$> query (tagQ identifier)) $
-    void $ insertGen bookTags [BookTag identifier bookId]
+  maybeT <- upsertTag username tag
+  forM_ maybeT $ \Tag{identifier} -> do
+    whenM (null <$> query (tagQ identifier)) $
+      void $ insertGen bookTags [BookTag identifier bookId]
   where
     tagQ tagId = do
       (tagId' :*: bookId') <- select (gen bookTags)

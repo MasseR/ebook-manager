@@ -97,9 +97,9 @@ postBookMetaHandler auth PostBook{..} = flip requireLoggedIn auth $ \SafeUser{us
 
 
 putBookMetaHandler :: AuthResult SafeUser -> BookID -> JsonBook -> AppM JsonBook
-putBookMetaHandler auth bookId b@JsonBook{..}
+putBookMetaHandler auth bookId JsonBook{..}
   | bookId == identifier = requireBookOwner auth bookId $ \SafeUser{username=owner} ->
-        maybe (throwM err403) (const (return b)) =<< runDB (updateBook UpdateBook{..})
+        maybe (throwM err403) (return . view (super @JsonBook)) =<< runDB (updateBook UpdateBook{..})
   | otherwise = throwM err403
 
 listBooksHandler :: AuthResult SafeUser -> AppM [JsonBook]

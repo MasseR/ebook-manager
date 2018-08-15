@@ -39,7 +39,7 @@ insertChannel username channel = do
       restrict (user .== literal username)
       return userId
 
-booksChannels :: (MonadMask m, MonadIO m) => BookID -> SeldaT m [Channel]
+booksChannels :: (MonadSelda m, MonadMask m, MonadIO m) => BookID -> m [Channel]
 booksChannels bookId = fromRels <$> query q
   where
     q = do
@@ -51,10 +51,10 @@ booksChannels bookId = fromRels <$> query q
 
 attachChannel :: (MonadMask m, MonadIO m, MonadSelda m) => Username -> BookID -> Text -> m ()
 attachChannel username bookId channel = do
-  -- XXX: test what happens if channel doesn't exist
-  [Channel{identifier}] <- fromRels <$> query channelQ
-  whenM (null <$> query (attachQ identifier)) $
-    void $ insertGen bookChannels [BookChannel identifier bookId]
+  mCh <- fromRels <$> query channelQ
+  forM_ mCh $ \Channel{identifier} ->
+    whenM (null <$> query (attachQ identifier)) $
+      void $ insertGen bookChannels [BookChannel identifier bookId]
   where
     attachQ channelId = do
       (channelId' :*: bookId') <- select (gen bookChannels)
