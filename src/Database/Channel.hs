@@ -5,6 +5,7 @@ module Database.Channel
   ( userChannels
   , insertChannel
   , attachChannel
+  , Visibility(..)
   , clearChannels
   , booksChannels
   , Channel(..)
@@ -22,18 +23,18 @@ userChannels username = fromRels <$> query q
   where
     q = do
       userId :*: _ :*: username' :*: _ <- select (gen users)
-      channel@(_ :*: _ :*: owner) <- select (gen channels)
+      channel@(_ :*: _ :*: owner :*: _) <- select (gen channels)
       restrict (owner .== userId)
       restrict (username' .== literal username)
       return channel
 
-insertChannel :: (MonadMask m, MonadIO m) => Username -> Text -> SeldaT m ()
-insertChannel username channel = do
+insertChannel :: (MonadMask m, MonadIO m) => Username -> Text -> Visibility -> SeldaT m ()
+insertChannel username channel visibility = do
   mUserId <- listToMaybe <$> getUser
   void $ forM mUserId $ \userId ->
-    insertUnless (gen channels) (doesNotExist userId) [ def :*: channel :*: userId ]
+    insertUnless (gen channels) (doesNotExist userId) [ def :*: channel :*: userId :*: visibility ]
   where
-    doesNotExist userId (_ :*: channel' :*: userId') = channel' .== literal channel .&& userId' .== literal userId
+    doesNotExist userId (_ :*: channel' :*: userId' :*: _) = channel' .== literal channel .&& userId' .== literal userId
     getUser = query $ do
       userId :*: _ :*: user :*: _ <- select (gen users)
       restrict (user .== literal username)
@@ -62,7 +63,7 @@ attachChannel username bookId channel = do
       return channelId'
     channelQ = do
       userId :*: _ :*: username' :*: _ <- select (gen users)
-      ch@(_ :*: channel' :*: owner) <- select (gen channels)
+      ch@(_ :*: channel' :*: owner :*: _) <- select (gen channels)
       restrict (username' .== literal username)
       restrict (owner .== userId)
       restrict (channel' .== literal channel)

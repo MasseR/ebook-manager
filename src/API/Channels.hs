@@ -25,14 +25,16 @@ import Data.Aeson
 import Control.Lens
 import Data.Generics.Product
 
-data JsonChannel = JsonChannel { channel :: Text } deriving (Show, Generic)
+data JsonChannel = JsonChannel { channel :: Text
+                               , visibility :: Visibility }
+                 deriving (Show, Generic)
 
 instance ToJSON JsonChannel
 instance FromJSON JsonChannel
 
 type API = Auth '[SA.BasicAuth, SA.Cookie, SA.JWT] SafeUser :> BaseAPI
 
-type BaseAPI = "channels" :> ReqBody '[JSON] JsonChannel :> Put '[JSON] JsonChannel
+type BaseAPI = "channels" :> ReqBody '[JSON] JsonChannel :> Post '[JSON] JsonChannel
           :<|> "channels" :> Get '[JSON] [JsonChannel]
 
 handler :: ServerT API AppM
@@ -47,5 +49,5 @@ listChannelsHandler = requireLoggedIn $ \user ->
 newChannelHandler :: AuthResult SafeUser -> JsonChannel -> AppM JsonChannel
 newChannelHandler auth ch@JsonChannel{..} = flip requireLoggedIn auth $ \user -> do
   $logInfo $ "Creating channel for user " <> pack (show user)
-  runDB (insertChannel (view (field @"username") user) channel)
+  runDB (insertChannel (view (field @"username") user) channel visibility)
   return ch

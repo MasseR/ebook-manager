@@ -124,9 +124,22 @@ data Tag = Tag { identifier :: TagID
                , owner :: UserID }
          deriving (Show, Generic)
 
+data Visibility = Public | Private | Followers
+                deriving (Show, Read, Generic)
+
+instance ToJSON Visibility
+instance FromJSON Visibility
+
+instance SqlType Visibility where
+  mkLit = LCustom . LText . pack . show
+  fromSql (SqlString x) = fromMaybe (error "fromSql: Not a valid visibility token") . readMay . unpack $ x
+  fromSql _             = error "fromSql: Not a valid visibility token"
+  defaultValue = mkLit Private
+
 data Channel = Channel { identifier :: ChannelID
                        , channel :: Text
-                       , owner :: UserID }
+                       , owner :: UserID
+                       , visibility :: Visibility }
              deriving (Show, Generic)
 
 tags :: GenTable Tag
