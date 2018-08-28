@@ -36,14 +36,14 @@ import Crypto.Hash (digestFromByteString)
 
 data JsonBook = JsonBook { identifier :: BookID
                          , contentType :: Text
-                         , title :: Maybe Text
+                         , title :: Text
                          , description :: Maybe Text
                          , channels :: [Text]
                          , tags :: [Text] }
               deriving (Generic, Show)
 
 data PostBook = PostBook { contentType :: Text
-                         , title :: Maybe Text
+                         , title :: Text
                          , description :: Maybe Text
                          , channels :: [Text]
                          , tags :: [Text] }
@@ -61,7 +61,9 @@ type BaseAPI = "books" :> Get '[JSON] [JsonBook]
        :<|> "books" :> ReqBody '[JSON] PostBook :> Post '[JSON] JsonBook
        :<|> "books" :> Capture "book_id" BookID :> "meta" :> ReqBody '[JSON] JsonBook :> Put '[JSON] JsonBook
        :<|> "books" :> Capture "book_id" BookID :> ReqBody '[OctetStream] ByteString :> Put '[JSON] NoContent
-       :<|> "books" :> Capture "book_id" BookID :> Get '[OctetStream] ByteString
+       :<|> GetBook
+
+type GetBook = "books" :> Capture "book_id" BookID :> Get '[OctetStream] ByteString
 
 handler :: ServerT API AppM
 handler user = listBooksHandler user

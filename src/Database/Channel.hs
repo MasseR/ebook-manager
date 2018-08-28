@@ -11,8 +11,9 @@ module Database.Channel
   , Visibility(..)
   , clearChannels
   , booksChannels
+  , channelBooks
   , Channel(..)
-  , ChannelID )
+  , ChannelID(..) )
   where
 
 import ClassyPrelude
@@ -79,6 +80,19 @@ insertChannel username channel visibility = runMaybeT $ do
       userId :*: _ :*: user :*: _ <- select (gen users)
       restrict (user .== literal username)
       return userId
+
+channelBooks :: (MonadSelda m, MonadMask m, MonadIO m) => Username -> ChannelID -> m [Book]
+channelBooks username identifier = fromRels <$> query q
+  where
+    q = do
+      channelId :*: bookId' <- select (gen bookChannels)
+      channelId' :*: _ :*: owner :*: _ <- select (gen channels)
+      userId :*: _ :*: username' :*: _ <- select (gen users)
+      book@(bookId :*: _) <- select (gen books)
+      restrict (username' .== literal username .&& owner .== userId)
+      restrict (channelId .== literal identifier .&& channelId .== channelId')
+      restrict (bookId .== bookId')
+      return book
 
 booksChannels :: (MonadSelda m, MonadMask m, MonadIO m) => BookID -> m [Channel]
 booksChannels bookId = fromRels <$> query q

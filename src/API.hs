@@ -27,8 +27,8 @@ data Index = Index
 
 type API = Get '[HTML] (AppView Index)
       :<|> Users.API
-      :<|> "api" :> Channels.API
-      :<|> "api" :> Books.API
+      :<|> "api" :> "current" :> Channels.API
+      :<|> "api" :> "current" :> Books.API
       :<|> "api" :> "1" :> Catalogue.VersionedAPI 1
       :<|> "api" :> "current" :> Catalogue.VersionedAPI 1
 

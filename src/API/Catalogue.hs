@@ -17,14 +17,16 @@
 module API.Catalogue (VersionedAPI, handler) where
 
 import Types
-import Servant
+import Servant hiding (contentType)
 import ClassyPrelude
 import GHC.TypeLits
 import Server.Auth
 import Servant.Auth as SA
 import Servant.XML
 import qualified Database.Channel as Channel
+import Database.Book (Book(..))
 import Database
+import qualified API.Books
 
 -- This is my first try on going to versioned apis, things might change
 -- I think my rule of thumb is that you can add new things as you want, but
@@ -96,30 +98,57 @@ instance ToNode (Catalog 1) where
 
 class Monad m => VersionedCatalog m (v :: Nat) where
   getChannels :: SafeUser -> m (Catalog v)
+  getBooks :: Channel.ChannelID -> SafeUser -> m (Catalog v)
 
 instance VersionedCatalog AppM 1 where
-  getChannels SafeUser{username} = do
-    updated <- liftIO getCurrentTime
-    let self = Rel ("/api/current/" <> selfUrl)
-        -- I'm not sure if this safe link approach is really useable with this
-        -- api hierarchy since I can't access the topmost api from here. Also
-        -- authentication would bring a little bit of extra effort as well
-        selfUrl = pack . uriPath . linkURI $ safeLink (Proxy @(BaseAPI 1)) (Proxy @(RootCatalog 1))
-        start = self
-        pagination = Pagination Nothing Nothing
-    entries <- map (fromChannel updated) <$> runDB (Channel.userChannels username)
-    pure CatalogV1{..}
-    where
-      fromChannel :: UTCTime -> Channel.Channel -> Entry 1
-      fromChannel updated Channel.Channel{..} =
-        let url = pack . uriPath . linkURI $ safeLink (Proxy @(BaseAPI 1)) (Proxy @(ChannelCatalog 1)) identifier
-            self = Rel ("/api/current/" <> url)
-        in EntryV1 channel channel updated channel (Left $ SubSection self)
+  getChannels = getChannelsV1
+  getBooks = getBooksV1
+
+relUrl :: Link -> Rel
+relUrl x = Rel ("/api/current/" <> (pack . uriPath . linkURI $ x))
+
+getBooksV1 :: Channel.ChannelID -> SafeUser -> AppM (Catalog 1)
+getBooksV1 channelID SafeUser{username} = do
+  updated <- liftIO getCurrentTime
+  let self = relUrl selfUrl
+      start = relUrl startUrl
+      selfUrl = safeLink (Proxy @(BaseAPI 1)) (Proxy @(ChannelCatalog 1)) channelID
+      startUrl = safeLink (Proxy @(BaseAPI 1)) (Proxy @(RootCatalog 1))
+      pagination = Pagination Nothing Nothing
+  entries <- map (toEntry updated) <$> runDB (Channel.channelBooks username channelID)
+  pure CatalogV1{..}
+  where
+    toEntry updated Book{description,title,identifier=bookId} =
+      let content = fromMaybe "no content" description
+          identifier = pack . show $ bookId
+          link = Right (Acquisition (relUrl (safeLink (Proxy @API.Books.BaseAPI) (Proxy @API.Books.GetBook) bookId)))
+      in EntryV1{..}
+
+getChannelsV1 :: SafeUser -> AppM (Catalog 1)
+getChannelsV1 SafeUser{username} = do
+  updated <- liftIO getCurrentTime
+  let self = relUrl selfUrl
+      -- I'm not sure if this safe link approach is really useable with this
+      -- api hierarchy since I can't access the topmost api from here. Also
+      -- authentication would bring a little bit of extra effort as well
+      selfUrl = safeLink (Proxy @(BaseAPI 1)) (Proxy @(RootCatalog 1))
+      start = self
+      pagination = Pagination Nothing Nothing
+  entries <- map (fromChannel updated) <$> runDB (Channel.userChannels username)
+  pure CatalogV1{..}
+  where
+    fromChannel :: UTCTime -> Channel.Channel -> Entry 1
+    fromChannel updated Channel.Channel{..} =
+      let url = safeLink (Proxy @(BaseAPI 1)) (Proxy @(ChannelCatalog 1)) identifier
+          self = relUrl url
+      in EntryV1 channel channel updated channel (Left $ SubSection self)
 
 type VersionedAPI (v :: Nat) = Auth '[SA.BasicAuth, SA.JWT] SafeUser :> BaseAPI v
 
-type RootCatalog (v :: Nat) = "catalog" :> Get '[XML] (Catalog v)
-type ChannelCatalog (v :: Nat) = "catalog" :> "channel" :> Capture "channel_id" Channel.ChannelID :> Get '[XML] (Catalog v)
+type CatalogContent = '[XML, OPDS]
+
+type RootCatalog (v :: Nat) = "catalog" :> Get CatalogContent (Catalog v)
+type ChannelCatalog (v :: Nat) = "catalog" :> "channel" :> Capture "channel_id" Channel.ChannelID :> Get CatalogContent (Catalog v)
 type BaseAPI (v :: Nat) = RootCatalog v
                     :<|> ChannelCatalog v
 
@@ -127,6 +156,8 @@ handler :: forall v. VersionedCatalog AppM v => ServerT (VersionedAPI v) AppM
 handler auth = catalogRoot :<|> catalogChannels
   where
     catalogChannels :: Channel.ChannelID -> AppM (Catalog v)
-    catalogChannels _ = throwM err403{errBody="Not implemented"}
+    -- Channel specific catalog returns tags inside the catalog
+    catalogChannels identifier = flip requireLoggedIn auth (getBooks identifier)
     catalogRoot :: AppM (Catalog v)
+    -- catalog root returns channels
     catalogRoot = flip requireLoggedIn auth getChannels

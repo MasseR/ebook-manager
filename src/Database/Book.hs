@@ -51,7 +51,7 @@ getBook identifier owner = listToMaybe . fromRels <$> query q
       return book
 
 data InsertBook = InsertBook { contentType :: Text
-                             , title :: Maybe Text
+                             , title :: Text
                              , description :: Maybe Text
                              , owner :: Username }
 
@@ -68,7 +68,7 @@ insertBook InsertBook{..} = do
 
 data UpdateBook = UpdateBook { identifier :: BookID
                              , contentType :: Text
-                             , title :: Maybe Text
+                             , title :: Text
                              , description :: Maybe Text
                              , owner :: Username
                              , tags :: [Text]
