@@ -17,46 +17,14 @@ library
                      , Data.Versioned
   -- other-extensions:
   build-depends:       base >=4.10 && <4.11
-                     , aeson
-                     , asn1-data
-                     , asn1-types
-                     , bytestring
                      , classy-prelude
-                     , cryptonite
                      , dhall
-                     , directory
                      , foreign-store
                      , generic-lens
-                     , http-api-data
-                     , http-media
-                     , jose
                      , lens
-                     , lucid
-                     , memory
-                     , monad-logger
                      , mtl
-                     , pandoc
-                     , pandoc-types
-                     , pem
-                     , process
-                     , resource-pool
-                     , selda
-                     , selda-postgresql
-                     , servant
-                     , servant-auth
-                     , servant-auth-server
-                     , servant-docs
-                     , servant-lucid
-                     , servant-multipart
-                     , servant-server
                      , text
                      , transformers
-                     , wai
-                     , warp
-                     , x509
-                     , x509-store
-                     , xml-conduit
-                     , xml-hamlet
   hs-source-dirs:      src
   default-extensions:  DeriveGeneric
                      , NoImplicitPrelude
