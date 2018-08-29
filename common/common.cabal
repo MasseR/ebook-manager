@@ -1,0 +1,65 @@
+name:                common
+version:             0.1.0.0
+-- synopsis:
+-- description:
+license:             BSD3
+license-file:        LICENSE
+author:              Mats Rauhala
+maintainer:          mats.rauhala@iki.fi
+-- copyright:
+category:            Web
+build-type:          Simple
+extra-source-files:  ChangeLog.md
+cabal-version:       >=1.10
+
+library
+  exposed-modules:     Configuration
+                     , Data.Versioned
+  -- other-extensions:
+  build-depends:       base >=4.10 && <4.11
+                     , aeson
+                     , asn1-data
+                     , asn1-types
+                     , bytestring
+                     , classy-prelude
+                     , cryptonite
+                     , dhall
+                     , directory
+                     , foreign-store
+                     , generic-lens
+                     , http-api-data
+                     , http-media
+                     , jose
+                     , lens
+                     , lucid
+                     , memory
+                     , monad-logger
+                     , mtl
+                     , pandoc
+                     , pandoc-types
+                     , pem
+                     , process
+                     , resource-pool
+                     , selda
+                     , selda-postgresql
+                     , servant
+                     , servant-auth
+                     , servant-auth-server
+                     , servant-docs
+                     , servant-lucid
+                     , servant-multipart
+                     , servant-server
+                     , text
+                     , transformers
+                     , wai
+                     , warp
+                     , x509
+                     , x509-store
+                     , xml-conduit
+                     , xml-hamlet
+  hs-source-dirs:      src
+  default-extensions:  DeriveGeneric
+                     , NoImplicitPrelude
+                     , OverloadedStrings
+                     , RecordWildCards
+  default-language:    Haskell2010

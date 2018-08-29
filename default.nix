@@ -1,10 +1,8 @@
-{ mkDerivation, base, stdenv }:
-mkDerivation {
-  pname = "ebook-manager";
-  version = "0.1.0.0";
-  src = ./.;
-  isLibrary = false;
-  isExecutable = true;
-  executableHaskellDepends = [ base ];
-  license = stdenv.lib.licenses.bsd3;
+{ nixpkgs, haskellPackages }:
+
+(import ./project.nix nixpkgs) {
+  packages = {
+    common = ./common;
+    backend = ./backend;
+  };
 }
