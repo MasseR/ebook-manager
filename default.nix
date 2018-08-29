@@ -5,4 +5,8 @@
     common = ./common;
     backend = ./backend;
   };
+  tools = with haskellPackages; [
+    ghcid
+    hasktags
+  ];
 }

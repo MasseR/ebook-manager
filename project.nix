@@ -8,6 +8,7 @@ in
 
 { packages
 , overrides ? _ : _ : {}
+, tools ? []
 }:
 
 let
@@ -26,8 +27,8 @@ let
     name = "${n}";
     value = nixpkgs.buildEnv {
       name = "${n}";
-      paths = [];
-      buildInputs = [deps];
+      paths = tools;
+      buildInputs = tools ++ [deps];
     };
   };
   shells = nixpkgs.lib.listToAttrs (mapAttrsToList mkShell packages');
