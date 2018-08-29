@@ -37,7 +37,7 @@ update = do
 
 develMain :: IO ()
 develMain = do
-  conf <- input auto "./config/devel.dhall"
+  conf <- input auto "../config/devel.dhall"
   withApp conf $ \app -> do
     void $ runReaderT (runDB migrate) app
     defaultMain app

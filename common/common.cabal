@@ -1,0 +1,33 @@
+name:                common
+version:             0.1.0.0
+-- synopsis:
+-- description:
+license:             BSD3
+license-file:        LICENSE
+author:              Mats Rauhala
+maintainer:          mats.rauhala@iki.fi
+-- copyright:
+category:            Web
+build-type:          Simple
+extra-source-files:  ChangeLog.md
+cabal-version:       >=1.10
+
+library
+  exposed-modules:     Configuration
+                     , Data.Versioned
+  -- other-extensions:
+  build-depends:       base >=4.10 && <4.11
+                     , classy-prelude
+                     , dhall
+                     , foreign-store
+                     , generic-lens
+                     , lens
+                     , mtl
+                     , text
+                     , transformers
+  hs-source-dirs:      src
+  default-extensions:  DeriveGeneric
+                     , NoImplicitPrelude
+                     , OverloadedStrings
+                     , RecordWildCards
+  default-language:    Haskell2010
