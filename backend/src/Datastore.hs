@@ -31,11 +31,11 @@ instance MonadDS AppM where
 putLocal :: ( MonadIO m
             , HasField "config" r r config config
             , HasField "store" config config store store
-            , HasField "path" store store Text Text
+            , HasType Text store
             , MonadReader r m)
             => ByteString -> m (Digest SHA256)
 putLocal bs = do
-  store :: FilePath <- unpack <$> view (field @"config" . field @"store" . field @"path")
+  store :: FilePath <- unpack <$> view (field @"config" . field @"store" . typed @Text)
   liftIO $ createDirectoryIfMissing True store
   let key = hashWith SHA256 bs
   writeFile (store </> show key) bs
@@ -44,11 +44,11 @@ putLocal bs = do
 getLocal :: ( MonadIO m
             , HasField "config" r r config config
             , HasField "store" config config store store
-            , HasField "path" store store Text Text
+            , HasType Text store
             , MonadReader r m)
             => Digest SHA256 -> m (Maybe ByteString)
 getLocal key = do
-  store <- unpack <$> view (field @"config" . field @"store" . field @"path")
+  store <- unpack <$> view (field @"config" . field @"store" . typed @Text)
   liftIO $ createDirectoryIfMissing True store
   let file = store </> show key
   exists <- liftIO $ doesFileExist file

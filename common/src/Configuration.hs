@@ -12,7 +12,9 @@ data Pg = Pg { username :: Text
              , database :: Text }
         deriving (Show, Generic)
 
-newtype Store = Store { path :: Text } deriving (Show, Generic)
+data Store = Filestore { path :: Text }
+           | IPFS { common :: Text }
+           deriving (Show, Generic)
 
 data Config = Config { database :: Pg
                      , store :: Store }
