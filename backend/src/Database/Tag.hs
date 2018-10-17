@@ -12,13 +12,14 @@ module Database.Tag
   , Tag(..) ) where
 
 import ClassyPrelude
-import Database.Schema
+import Control.Monad.Catch (MonadCatch)
+import Control.Monad.Trans.Maybe
 import Database
+import Database.Schema
 import Database.Selda
 import Database.Selda.Generic
-import Control.Monad.Trans.Maybe
 
-upsertTag :: (MonadMask m, MonadIO m, MonadSelda m) => Username -> Text -> m (Maybe Tag)
+upsertTag :: (MonadCatch m, MonadIO m, MonadSelda m) => Username -> Text -> m (Maybe Tag)
 upsertTag username tag = runMaybeT $ do
   userId <- MaybeT (listToMaybe <$> query userQ)
   void $ lift $ upsert (gen tags) (predicate userId) id [toRel (Tag def tag userId)]
@@ -34,7 +35,7 @@ upsertTag username tag = runMaybeT $ do
       restrict (username' .== literal username)
       return userId
 
-booksTags :: (MonadMask m, MonadIO m, MonadSelda m) => BookID -> m [Tag]
+booksTags :: (MonadIO m, MonadSelda m) => BookID -> m [Tag]
 booksTags bookId = fromRels <$> query q
   where
     q = do
@@ -44,7 +45,7 @@ booksTags bookId = fromRels <$> query q
       restrict (bookId' .== literal bookId)
       return tag
 
-attachTag :: (MonadMask m, MonadIO m, MonadSelda m) => Username -> BookID -> Text -> m ()
+attachTag :: (MonadCatch m, MonadIO m, MonadSelda m) => Username -> BookID -> Text -> m ()
 attachTag username bookId tag = do
   maybeT <- upsertTag username tag
   forM_ maybeT $ \Tag{identifier} -> do
@@ -56,6 +57,6 @@ attachTag username bookId tag = do
       restrict (tagId' .== literal tagId .&& bookId' .== literal bookId)
       return tagId'
 
-clearTags :: (MonadMask m, MonadIO m, MonadSelda m) => BookID -> m Int
+clearTags :: (MonadIO m, MonadSelda m) => BookID -> m Int
 clearTags bookId = deleteFrom (gen bookTags) (\(_ :*: bookId') -> bookId' .== literal bookId)
 

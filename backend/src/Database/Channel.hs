@@ -17,14 +17,15 @@ module Database.Channel
   where
 
 import ClassyPrelude
-import Database.Schema
+import Control.Monad.Catch (MonadMask)
 import Database
+import Database.Schema
 import Database.Selda
 import Database.Selda.Generic
 
 import Control.Monad.Trans.Maybe
 
-getChannel :: (MonadSelda m, MonadMask m, MonadIO m) => ChannelID -> m (Maybe Channel)
+getChannel :: (MonadSelda m, MonadIO m) => ChannelID -> m (Maybe Channel)
 getChannel identifier = listToMaybe . fromRels <$> query q
   where
     q = do
@@ -32,10 +33,10 @@ getChannel identifier = listToMaybe . fromRels <$> query q
       restrict (channelId .== literal identifier)
       return ch
 
-channelExists :: (MonadSelda m, MonadMask m, MonadIO m) => ChannelID -> m Bool
+channelExists :: (MonadSelda m, MonadIO m) => ChannelID -> m Bool
 channelExists identifier = not . null <$> getChannel identifier
 
-isChannelOwner :: (MonadSelda m, MonadIO m, MonadMask m) => ChannelID -> Username -> m Bool
+isChannelOwner :: (MonadSelda m, MonadIO m) => ChannelID -> Username -> m Bool
 isChannelOwner identifier username = not . null <$> query q
   where
     q = do
@@ -56,7 +57,7 @@ userChannels username = fromRels <$> query q
       restrict (username' .== literal username)
       return channel
 
-updateChannelPrivacy :: (MonadMask m, MonadIO m, MonadSelda m) => ChannelID -> Visibility -> m (Maybe Channel)
+updateChannelPrivacy :: (MonadIO m, MonadSelda m) => ChannelID -> Visibility -> m (Maybe Channel)
 updateChannelPrivacy channelId visibility = do
   void $ update (gen channels) predicate (\channel -> channel `with` [pVis := literal visibility])
   getChannel channelId
@@ -81,7 +82,7 @@ insertChannel username channel visibility = runMaybeT $ do
       restrict (user .== literal username)
       return userId
 
-channelBooks :: (MonadSelda m, MonadMask m, MonadIO m) => Username -> ChannelID -> m [Book]
+channelBooks :: (MonadSelda m, MonadIO m) => Username -> ChannelID -> m [Book]
 channelBooks username identifier = fromRels <$> query q
   where
     q = do
@@ -94,7 +95,7 @@ channelBooks username identifier = fromRels <$> query q
       restrict (bookId .== bookId')
       return book
 
-booksChannels :: (MonadSelda m, MonadMask m, MonadIO m) => BookID -> m [Channel]
+booksChannels :: (MonadSelda m, MonadIO m) => BookID -> m [Channel]
 booksChannels bookId = fromRels <$> query q
   where
     q = do
@@ -104,7 +105,7 @@ booksChannels bookId = fromRels <$> query q
       restrict (bookId' .== literal bookId)
       return ch
 
-attachChannel :: (MonadMask m, MonadIO m, MonadSelda m) => Username -> BookID -> Text -> m ()
+attachChannel :: (MonadIO m, MonadSelda m) => Username -> BookID -> Text -> m ()
 attachChannel username bookId channel = do
   mCh <- fromRels <$> query channelQ
   forM_ mCh $ \Channel{identifier} ->
@@ -123,5 +124,5 @@ attachChannel username bookId channel = do
       restrict (channel' .== literal channel)
       return ch
 
-clearChannels :: (MonadMask m, MonadIO m, MonadSelda m) => BookID -> m Int
+clearChannels :: (MonadIO m, MonadSelda m) => BookID -> m Int
 clearChannels bookId = deleteFrom (gen bookChannels) (\(_ :*: bookId') -> bookId' .== literal bookId)

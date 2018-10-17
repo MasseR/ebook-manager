@@ -1,2 +1,6 @@
 dist/
 config/config.dhall
+/ctags
+/TAGS
+/result*
+/backend/config

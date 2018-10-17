@@ -5,20 +5,21 @@
 module Database.User where
 
 import ClassyPrelude
+import Control.Lens (view, over, _Just)
+import Control.Monad (mfilter)
+import Control.Monad.Catch (MonadMask)
+import Control.Monad.Logger
+import Crypto.KDF.BCrypt
+import Crypto.Random.Types (MonadRandom)
+import Data.Generics.Product
 import Database
 import Database.Schema
 import Database.Selda
-import Control.Lens (view, over, _Just)
-import Data.Generics.Product
-import Crypto.KDF.BCrypt
-import Crypto.Random.Types (MonadRandom)
-import Control.Monad.Logger
-import Control.Monad (mfilter)
 
 data UserExistsError = UserExistsError
 
 
-insertUser :: (MonadLogger m, MonadIO m, MonadMask m, MonadRandom m) => Username -> Email -> PlainPassword -> SeldaT m (Either UserExistsError (User NoPassword))
+insertUser :: (MonadMask m, MonadLogger m, MonadIO m, MonadRandom m) => Username -> Email -> PlainPassword -> SeldaT m (Either UserExistsError (User NoPassword))
 insertUser username email (PlainPassword password) =
   getUser' username >>= maybe insert' (const (return $ Left UserExistsError))
   where

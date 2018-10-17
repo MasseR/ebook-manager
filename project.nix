@@ -15,13 +15,14 @@ let
 
   overrides' = nixpkgs.lib.foldr nixpkgs.lib.composeExtensions (_: _: {}) [
     (self: super: mapAttrs (name: path: self.callCabal2nix name path {}) packages)
+    overrides
   ];
   haskellPackages = nixpkgs.haskellPackages.override { overrides = overrides'; };
   packages' = mapAttrs (name: _: haskellPackages."${name}") packages;
   mkShell = name: pkg:
   let
     n =  "${name}-shell";
-    deps = haskellPackages.ghcWithPackages (pkgs: pkg.nativeBuildInputs);
+    deps = haskellPackages.ghcWithHoogle (pkgs: pkg.buildInputs ++ pkg.propagatedBuildInputs);
   in
   {
     name = "${n}";

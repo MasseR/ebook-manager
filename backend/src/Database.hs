@@ -15,15 +15,17 @@ module Database
   , SeldaT )
   where
 
-import Data.Generics.Product
-import Control.Lens (view)
-import Data.Pool (Pool, withResource)
-import Database.Selda.Backend (SeldaConnection, runSeldaT, SeldaT)
-import Database.Selda (query, select, transaction)
-import Database.Selda.Generic (gen, fromRel, fromRels, toRel)
 import ClassyPrelude
+import Control.Lens (view)
+import Control.Monad.Catch (MonadMask)
+import Control.Monad.Trans.Control (MonadBaseControl)
+import Data.Generics.Product
+import Data.Pool (Pool, withResource)
+import Database.Selda (query, select, transaction)
+import Database.Selda.Backend (SeldaConnection, runSeldaT, SeldaT)
+import Database.Selda.Generic (gen, fromRel, fromRels, toRel)
 
-type DBLike r m = (MonadIO m, MonadReader r m, MonadBaseControl IO m, MonadMask m, HasField' "database" r (Pool SeldaConnection))
+type DBLike r m = (MonadBaseControl IO m, MonadIO m, MonadReader r m, HasField "database" r r (Pool SeldaConnection) (Pool SeldaConnection), MonadMask m)
 
 runDB :: DBLike r m => SeldaT m a -> m a
 runDB q = do

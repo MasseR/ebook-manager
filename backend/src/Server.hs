@@ -10,6 +10,7 @@
 {-# Language DeriveGeneric #-}
 {-# Language FlexibleInstances #-}
 {-# Language TypeApplications #-}
+{-# Language ScopedTypeVariables #-}
 module Server where
 
 import qualified API as API
@@ -22,19 +23,21 @@ import Control.Monad.Except
 import Servant.Auth.Server as SAS
 import Control.Lens
 import Data.Generics.Product
+import Server.Auth (SafeUser)
 
 type API = API.API :<|> "static" :> Raw
 
+type Ctx = '[BasicAuthData -> IO (AuthResult SafeUser), CookieSettings, JWTSettings]
 
 server :: App -> Application
-server app = serveWithContext api cfg (enter server' API.handler :<|> serveDirectoryFileServer "static")
+server app = serveWithContext api cfg (hoistServerWithContext (Proxy @ API.API) (Proxy @ Ctx) server' API.handler :<|> serveDirectoryFileServer "static")
   where
     myKey = view (field @"jwk") app
     jwtCfg = defaultJWTSettings myKey
     authCfg = authCheck app
     cookieSettings = SAS.defaultCookieSettings{cookieIsSecure=SAS.NotSecure}
     cfg = jwtCfg :. cookieSettings :. authCfg :. EmptyContext
-    server' :: AppM :~> Servant.Handler
-    server' = NT (Handler . ExceptT . try . (`runReaderT` app) . (runFileLoggingT "logs/server.log"))
+    server' :: AppM a -> Servant.Handler a
+    server' = Handler . ExceptT . try . (`runReaderT` app) . (runFileLoggingT "logs/server.log")
     api :: Proxy API
     api = Proxy

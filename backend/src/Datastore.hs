@@ -5,6 +5,7 @@
 {-# Language FlexibleContexts #-}
 {-# Language TypeSynonymInstances #-}
 {-# Language FlexibleInstances #-}
+{-# Language ScopedTypeVariables #-}
 module Datastore where
 
 import ClassyPrelude
@@ -28,22 +29,22 @@ instance MonadDS AppM where
   get = getLocal
 
 putLocal :: ( MonadIO m
-            , HasField' "config" r config
-            , HasField' "store" config store
-            , HasField' "path" store Text
+            , HasField "config" r r config config
+            , HasField "store" config config store store
+            , HasField "path" store store Text Text
             , MonadReader r m)
             => ByteString -> m (Digest SHA256)
 putLocal bs = do
-  store <- unpack <$> view (field @"config" . field @"store" . field @"path")
+  store :: FilePath <- unpack <$> view (field @"config" . field @"store" . field @"path")
   liftIO $ createDirectoryIfMissing True store
   let key = hashWith SHA256 bs
   writeFile (store </> show key) bs
   return key
 
 getLocal :: ( MonadIO m
-            , HasField' "config" r config
-            , HasField' "store" config store
-            , HasField' "path" store Text
+            , HasField "config" r r config config
+            , HasField "store" config config store store
+            , HasField "path" store store Text Text
             , MonadReader r m)
             => Digest SHA256 -> m (Maybe ByteString)
 getLocal key = do

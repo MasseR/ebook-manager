@@ -25,6 +25,7 @@ withApp :: Config -> (App -> IO ()) -> IO ()
 withApp config f = do
   let pgHost = view (field @"database" . field @"host") config
       pgPort = 5432
+      pgSchema = Nothing
       pgDatabase = view (field @"database" . field @"database") config
       pgUsername = Just (view (field @"database" . field @"username") config)
       pgPassword = Just (view (field @"database" . field @"password") config)

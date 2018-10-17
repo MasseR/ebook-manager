@@ -15,24 +15,25 @@
 {-# Language NamedFieldPuns #-}
 module API.Books where
 
-import Servant hiding (contentType)
-import Types
-import ClassyPrelude
-import Server.Auth
-import Servant.Auth as SA
-import Data.Aeson
-import Database.Book
-import Database.Channel
-import Database.Tag
-import Database
-import Control.Lens
-import Data.Generics.Product
+import           ClassyPrelude
+import           Control.Lens
+import           Control.Monad.Catch (throwM, MonadThrow)
+import           Data.Aeson
+import           Data.Generics.Product
+import           Database
+import           Database.Book
+import           Database.Channel
+import           Database.Tag
+import           Servant hiding (contentType)
+import           Servant.Auth as SA
+import           Server.Auth
+import           Types
 
-import Control.Monad.Trans.Maybe
+import           Control.Monad.Trans.Maybe
 
 import qualified Datastore as DS
-import Data.ByteArray (convert)
-import Crypto.Hash (digestFromByteString)
+import           Data.ByteArray (convert)
+import           Crypto.Hash (digestFromByteString)
 
 data JsonBook = JsonBook { identifier :: BookID
                          , contentType :: Text

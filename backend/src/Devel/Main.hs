@@ -3,19 +3,18 @@
 {-# Language FlexibleContexts #-}
 module Devel.Main where
 
-import Prelude
-import Control.Monad.Trans.Reader (runReaderT)
-import Main (withApp, defaultMain)
 import Control.Concurrent
 import Control.Monad (void)
+import Control.Monad.Trans.Reader (runReaderT)
 import Data.IORef (IORef, newIORef, readIORef, writeIORef)
-import Foreign.Store (Store(..), lookupStore, readStore, storeAction, withStore)
-import GHC.Word (Word32)
-import Dhall (input, auto)
-
+import Database
 import Database.Schema
 import Database.Selda (tryCreateTable)
-import Database
+import Dhall (input, auto)
+import Foreign.Store (Store(..), lookupStore, readStore, storeAction, withStore)
+import GHC.Word (Word32)
+import Main (withApp, defaultMain)
+import Prelude
 
 update :: IO ()
 update = do

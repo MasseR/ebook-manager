@@ -7,17 +7,18 @@
 {-# Language TypeApplications #-}
 module API.Users  where
 
-import Servant
 import ClassyPrelude
-import Types
+import Control.Monad.Catch (throwM, MonadThrow)
 import Data.Aeson
-import Web.FormUrlEncoded
 import Database (runDB)
-import Database.User
 import Database.Schema
-import Server.Auth
-import Servant.Auth.Server as SAS
+import Database.User
+import Servant
 import Servant.Auth as SA
+import Servant.Auth.Server as SAS
+import Server.Auth
+import Types
+import Web.FormUrlEncoded
 
 
 data RegisterForm = RegisterForm { username :: Username

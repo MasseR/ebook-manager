@@ -16,17 +16,17 @@
 {-# Language ScopedTypeVariables #-}
 module API.Catalogue (VersionedAPI, handler) where
 
-import Types
-import Servant hiding (contentType)
-import ClassyPrelude
-import GHC.TypeLits
-import Server.Auth
-import Servant.Auth as SA
-import Servant.XML
-import qualified Database.Channel as Channel
-import Database.Book (Book(..))
-import Database
 import qualified API.Books
+import           ClassyPrelude
+import           Database
+import           Database.Book (Book(..))
+import qualified Database.Channel as Channel
+import           GHC.TypeLits
+import           Servant hiding (contentType)
+import           Servant.Auth as SA
+import           Servant.XML
+import           Server.Auth
+import           Types
 
 -- This is my first try on going to versioned apis, things might change
 -- I think my rule of thumb is that you can add new things as you want, but

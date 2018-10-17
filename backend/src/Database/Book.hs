@@ -18,18 +18,17 @@ module Database.Book
   , BookID) where
 
 import ClassyPrelude
-import Database.Schema (books, users, Username, Book(..), BookID(..), UserID, HashDigest(..))
+import Control.Lens (view)
+import Control.Monad.Catch (MonadCatch)
+import Data.Generics.Product
 import Database
+import Database.Channel (booksChannels, attachChannel, clearChannels)
+import Database.Schema (books, users, Username, Book(..), BookID(..), UserID, HashDigest(..))
 import Database.Selda
 import Database.Selda.Generic
-
-import Control.Lens (view)
-import Data.Generics.Product
-
 import Database.Tag (booksTags, attachTag, clearTags)
-import Database.Channel (booksChannels, attachChannel, clearChannels)
 
-usersBooks :: (MonadSelda m, MonadMask m, MonadIO m) => Username -> m [Book]
+usersBooks :: (MonadSelda m, MonadIO m) => Username -> m [Book]
 usersBooks username = fromRels <$> query q
   where
     q = do
@@ -41,7 +40,7 @@ usersBooks username = fromRels <$> query q
       return book
 
 
-getBook :: (MonadSelda m, MonadMask m, MonadIO m) => BookID -> Username -> m (Maybe Book)
+getBook :: (MonadSelda m, MonadIO m) => BookID -> Username -> m (Maybe Book)
 getBook identifier owner = listToMaybe . fromRels <$> query q
   where
     q = do
@@ -56,7 +55,7 @@ data InsertBook = InsertBook { contentType :: Text
                              , owner :: Username }
 
 -- Always inserts
-insertBook :: (MonadSelda m, MonadMask m, MonadIO m) => InsertBook -> m (Maybe BookID)
+insertBook :: (MonadSelda m, MonadIO m) => InsertBook -> m (Maybe BookID)
 insertBook InsertBook{..} = do
   mUserId <- query $ do
     userId :*: _ :*: username' :*: _ <- select (gen users)
@@ -75,7 +74,7 @@ data UpdateBook = UpdateBook { identifier :: BookID
                              , channels :: [Text] }
                 deriving (Show, Generic)
 
-bookExists :: (MonadSelda m, MonadMask m, MonadIO m) => BookID -> m Bool
+bookExists :: (MonadSelda m, MonadIO m) => BookID -> m Bool
 bookExists identifier = not . null <$> query q
   where
     q = do
@@ -83,7 +82,7 @@ bookExists identifier = not . null <$> query q
       restrict (bookId .== literal identifier)
       return bookId
 
-isBookOwner :: (MonadSelda m, MonadIO m, MonadThrow m) => BookID -> Username -> m Bool
+isBookOwner :: (MonadSelda m, MonadIO m) => BookID -> Username -> m Bool
 isBookOwner identifier username = not . null <$> query (bookOwner' identifier username)
 
 bookOwner' :: BookID -> Username -> Query s (Col s UserID :*: Col s BookID)
@@ -95,7 +94,7 @@ bookOwner' identifier username = do
   restrict (bookId .== literal identifier)
   return (userId :*: bookId)
 
-updateBook :: (MonadSelda m, MonadMask m, MonadIO m) => UpdateBook -> m (Maybe UpdateBook)
+updateBook :: (MonadCatch m, MonadSelda m, MonadIO m) => UpdateBook -> m (Maybe UpdateBook)
 updateBook UpdateBook{..} = do
   clearTags identifier >> connectTags
   clearChannels identifier >> connectChannels
@@ -114,7 +113,7 @@ updateBook UpdateBook{..} = do
     predicate (bookId :*: _) = bookId .== literal identifier
 
 
-getUpdateBook :: (MonadMask m, MonadIO m, MonadSelda m) => BookID -> Username -> m (Maybe UpdateBook)
+getUpdateBook :: (MonadIO m, MonadSelda m) => BookID -> Username -> m (Maybe UpdateBook)
 getUpdateBook bookId username = do
   mBook <- getBook bookId username
   forM mBook $ \Book{..} -> do
@@ -122,7 +121,7 @@ getUpdateBook bookId username = do
     tags <- map (view (field @"tag")) <$> booksTags bookId
     return UpdateBook{owner=username,..}
 
-setContent :: (MonadSelda m, MonadMask m, MonadIO m) => BookID -> Username -> HashDigest -> m ()
+setContent :: (MonadSelda m, MonadIO m) => BookID -> Username -> HashDigest -> m ()
 setContent identifier owner digest = do
   mOwner <- query (bookOwner' identifier owner)
   void $ forM (listToMaybe mOwner) $ \_ ->

@@ -15,17 +15,18 @@
 {-# Language NamedFieldPuns #-}
 module API.Channels (API, handler, JsonChannel(..)) where
 
-import Servant
-import Types
 import ClassyPrelude
-import Server.Auth
-import Servant.Auth as SA
+import Control.Lens
+import Control.Monad.Catch (throwM, MonadThrow)
 import Control.Monad.Logger
+import Data.Aeson
+import Data.Generics.Product
 import Database
 import Database.Channel
-import Data.Aeson
-import Control.Lens
-import Data.Generics.Product
+import Servant
+import Servant.Auth as SA
+import Server.Auth
+import Types
 
 data JsonChannel = JsonChannel { channel :: Text
                                , visibility :: Visibility }

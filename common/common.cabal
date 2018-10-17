@@ -16,7 +16,7 @@ library
   exposed-modules:     Configuration
                      , Data.Versioned
   -- other-extensions:
-  build-depends:       base >=4.10 && <4.11
+  build-depends:       base >=4.10
                      , classy-prelude
                      , dhall
                      , foreign-store

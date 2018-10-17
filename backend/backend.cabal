@@ -36,7 +36,9 @@ executable backend
                      , Types
                      , View
   -- other-extensions:
-  build-depends:       base >=4.10 && <4.11
+  build-depends:       base >=4.10
+                     , exceptions
+                     , monad-control
                      , common
                      , aeson
                      , asn1-data
