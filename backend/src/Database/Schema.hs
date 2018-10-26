@@ -14,13 +14,13 @@ import Data.Aeson
 import Web.HttpApiData
 
 -- | User type
-newtype PlainPassword = PlainPassword Text deriving (Show, ToJSON, FromJSON, ToHttpApiData, FromHttpApiData, Eq)
+newtype PlainPassword = PlainPassword Text deriving (Show, ToJSON, FromJSON, ToHttpApiData, FromHttpApiData, Eq, Generic)
 newtype HashedPassword = HashedPassword {unHashed :: ByteString}
 data NoPassword = NoPassword
 
-newtype Email = Email { unEmail :: Text } deriving (Show, ToJSON, FromJSON, ToHttpApiData, FromHttpApiData)
+newtype Email = Email { unEmail :: Text } deriving (Show, ToJSON, FromJSON, ToHttpApiData, FromHttpApiData, Generic, Eq)
 
-newtype Username = Username { unUsername :: Text } deriving (Show, ToJSON, FromJSON, ToHttpApiData, FromHttpApiData)
+newtype Username = Username { unUsername :: Text } deriving (Show, ToJSON, FromJSON, ToHttpApiData, FromHttpApiData, Eq, Generic)
 
 instance SqlType HashedPassword where
   mkLit = LCustom . LBlob . unHashed
@@ -42,9 +42,9 @@ instance SqlType Username where
 
 newtype UserID = UserID {unUserID :: Int} deriving (Show)
 
-newtype BookID = BookID {unBookID :: Int} deriving (Show, ToJSON, FromJSON, FromHttpApiData, Eq, Ord, ToHttpApiData)
+newtype BookID = BookID {unBookID :: Int} deriving (Show, ToJSON, FromJSON, FromHttpApiData, Eq, Ord, ToHttpApiData, Generic)
 
-newtype ChannelID = ChannelID {unChannelID :: Int} deriving (Show, ToHttpApiData, FromHttpApiData, ToJSON, FromJSON)
+newtype ChannelID = ChannelID {unChannelID :: Int} deriving (Show, ToHttpApiData, FromHttpApiData, ToJSON, FromJSON, Eq, Generic)
 
 newtype TagID = TagID {unTagID :: Int} deriving (Show)
 
@@ -77,7 +77,7 @@ data User pass = User { identifier :: UserID
                       , password :: pass }
           deriving (Show, Generic)
 
-data Role = UserRole | AdminRole deriving (Show, Read, Enum, Bounded, Typeable, Generic)
+data Role = UserRole | AdminRole deriving (Show, Read, Enum, Bounded, Typeable, Generic, Eq)
 
 instance ToJSON Role
 instance FromJSON Role
@@ -125,7 +125,7 @@ data Tag = Tag { identifier :: TagID
          deriving (Show, Generic)
 
 data Visibility = Public | Private | Followers
-                deriving (Show, Read, Generic)
+                deriving (Show, Read, Generic, Eq)
 
 instance ToJSON Visibility
 instance FromJSON Visibility

@@ -86,3 +86,20 @@ executable backend
                      , NoImplicitPrelude
                      , OverloadedStrings
                      , RecordWildCards
+
+test-suite spec
+  type:                exitcode-stdio-1.0
+  main-is:             Spec.hs
+  hs-source-dirs:      src
+  build-depends:       base >=4.10
+                     , classy-prelude
+                     , http-api-data
+                     , selda
+                     , selda-postgresql
+                     , aeson
+                     , text
+                     , validity
+                     , genvalidity-hspec
+                     , genvalidity-property
+                     , genvalidity-text
+                     , hspec
