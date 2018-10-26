@@ -1,11 +1,13 @@
 {-# Language TypeApplications #-}
 module Main where
 
+import           API.Books
 import qualified Data.Aeson as A
 import           Data.Char (isPrint)
 import           Data.GenValidity.Text ()
 import qualified Data.Text as T
 import           Database.Schema
+import           Prelude
 import           Test.Hspec
 import           Test.Validity
 
@@ -37,6 +39,14 @@ instance GenUnchecked Visibility
 instance GenValid Visibility
 instance GenInvalid Visibility
 instance Validity Visibility
+instance GenUnchecked JsonBook
+instance GenValid JsonBook
+instance GenInvalid JsonBook
+instance Validity JsonBook
+instance GenUnchecked PostBook
+instance GenValid PostBook
+instance GenInvalid PostBook
+instance Validity PostBook
 
 spec :: Spec
 spec = do
@@ -48,6 +58,8 @@ spec = do
     it "Works for ChannelID" $ inverseFunctionsIfSecondSucceedsOnValid (A.encode @ChannelID) A.decode
     it "Works for Role" $ inverseFunctionsIfSecondSucceedsOnValid (A.encode @Role) A.decode
     it "Works for Visibility" $ inverseFunctionsIfSecondSucceedsOnValid (A.encode @Visibility) A.decode
+    it "Works for JsonBook" $ inverseFunctionsIfSecondSucceedsOnValid (A.encode @JsonBook) A.decode
+    it "Works for PostBook" $ inverseFunctionsIfSecondSucceedsOnValid (A.encode @PostBook) A.decode
 
 main :: IO ()
 main = hspec spec

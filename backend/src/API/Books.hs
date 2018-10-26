@@ -41,14 +41,14 @@ data JsonBook = JsonBook { identifier :: BookID
                          , description :: Maybe Text
                          , channels :: [Text]
                          , tags :: [Text] }
-              deriving (Generic, Show)
+              deriving (Generic, Show, Eq)
 
 data PostBook = PostBook { contentType :: Text
                          , title :: Text
                          , description :: Maybe Text
                          , channels :: [Text]
                          , tags :: [Text] }
-              deriving (Generic, Show)
+              deriving (Generic, Show, Eq)
 
 
 instance ToJSON JsonBook
