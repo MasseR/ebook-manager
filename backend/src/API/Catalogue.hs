@@ -24,8 +24,10 @@ import qualified Database.Channel as Channel
 import           GHC.TypeLits
 import           Servant hiding (contentType)
 import           Servant.Auth as SA
+import qualified Servant.Docs as Docs
 import           Servant.XML
 import           Server.Auth
+import           System.IO.Unsafe (unsafePerformIO)
 import           Types
 
 -- This is my first try on going to versioned apis, things might change
@@ -40,7 +42,7 @@ newtype Rel = Rel { unRel :: Text } deriving (IsString, Show)
 
 data Pagination = Pagination { previous :: Maybe Rel
                              , next :: Maybe Rel }
-                deriving (Show)
+                deriving (Show, Generic)
 
 newtype SubSection = SubSection Rel deriving (Show)
 newtype Acquisition = Acquisition Rel deriving (Show)
@@ -63,6 +65,20 @@ deriving instance Show (Catalog 1)
 deriving instance Show (Entry 1)
 deriving instance Generic (Catalog 1)
 deriving instance Generic (Entry 1)
+
+instance Docs.ToSample (Entry 1) where
+  toSamples _ = [("Entry", EntryV1 "title" "identifier" docsTime "content" (Left (SubSection (Rel "sub"))))]
+instance Docs.ToSample UTCTime where
+  toSamples _ = [("time", docsTime)]
+instance Docs.ToSample Rel where
+  toSamples _ = [("Relative link", Rel "next")]
+instance Docs.ToSample Pagination
+instance Docs.ToSample (Catalog 1) -- where
+  -- toSamples _ = [("catalog", CatalogV1 docsTime (Rel "prev") (Rel "next") (Pagination (Just "previous") (Just "next")) [])]
+
+docsTime :: UTCTime
+docsTime = unsafePerformIO getCurrentTime
+  
 
 instance ToNode SubSection where
   toNode (SubSection rel) = [xml|<link type="application/atom+xml;profile=opds-catalog;kind=acquisition" rel="subsection" href="#{unRel rel}">|]

@@ -1,37 +1,45 @@
-{-# Language DataKinds #-}
-{-# Language TypeFamilies #-}
-{-# Language TypeOperators #-}
-{-# Language NoImplicitPrelude #-}
-{-# Language MultiParamTypeClasses #-}
-{-# Language OverloadedStrings #-}
-{-# Language TemplateHaskell #-}
-{-# Language QuasiQuotes #-}
-{-# Language RecordWildCards #-}
-{-# Language DeriveGeneric #-}
-{-# Language FlexibleInstances #-}
-{-# Language TypeApplications #-}
-{-# Language ScopedTypeVariables #-}
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE DeriveGeneric         #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE NoImplicitPrelude     #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE QuasiQuotes           #-}
+{-# LANGUAGE RecordWildCards       #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE TypeOperators         #-}
 module Server where
 
-import qualified API as API
-import Server.Auth (authCheck)
-import Servant
-import Types
-import ClassyPrelude hiding (Handler)
-import Control.Monad.Logger
-import Control.Monad.Except
-import Servant.Auth.Server as SAS
-import Control.Lens
-import Data.Generics.Product
-import Server.Auth (SafeUser)
+import qualified API                   as API
+import           ClassyPrelude         hiding (Handler)
+import           Control.Lens
+import           Control.Monad.Except
+import           Control.Monad.Logger
+import           Data.Generics.Product
+import           Servant
+import           Servant.Auth.Docs     ()
+import           Servant.Auth.Server   as SAS
+import qualified Servant.Docs          as Docs
+import           Servant.HTML.Lucid    (HTML)
+import           Server.Auth           (SafeUser)
+import           Server.Auth           (authCheck)
+import           Types
 
-type API = API.API :<|> "static" :> Raw
+type API = API.API
+  :<|> "help" :> Get '[PlainText, HTML] String
+  :<|> "static" :> Raw
 
 type Ctx = '[BasicAuthData -> IO (AuthResult SafeUser), CookieSettings, JWTSettings]
 
 server :: App -> Application
-server app = serveWithContext api cfg (hoistServerWithContext (Proxy @ API.API) (Proxy @ Ctx) server' API.handler :<|> serveDirectoryFileServer "static")
+server app = serveWithContext api cfg (hoistServerWithContext (Proxy @ API.API) (Proxy @ Ctx) server' API.handler :<|> serveDocs :<|> serveDirectoryFileServer "static")
   where
+    apiDocs :: Docs.API
+    apiDocs = Docs.docs (Proxy @API.API)
+    serveDocs = pure $ Docs.markdown apiDocs
     myKey = view (field @"jwk") app
     jwtCfg = defaultJWTSettings myKey
     authCfg = authCheck app

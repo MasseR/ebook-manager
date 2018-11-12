@@ -7,18 +7,19 @@
 {-# Language TypeApplications #-}
 module API.Users  where
 
-import ClassyPrelude
-import Control.Monad.Catch (throwM, MonadThrow)
-import Data.Aeson
-import Database (runDB)
-import Database.Schema
-import Database.User
-import Servant
-import Servant.Auth as SA
-import Servant.Auth.Server as SAS
-import Server.Auth
-import Types
-import Web.FormUrlEncoded
+import           ClassyPrelude
+import           Control.Monad.Catch (throwM, MonadThrow)
+import           Data.Aeson
+import           Database (runDB)
+import           Database.Schema
+import           Database.User
+import           Servant
+import           Servant.Auth as SA
+import           Servant.Auth.Server as SAS
+import qualified Servant.Docs as Docs
+import           Server.Auth
+import           Types
+import           Web.FormUrlEncoded
 
 
 data RegisterForm = RegisterForm { username :: Username
@@ -27,12 +28,17 @@ data RegisterForm = RegisterForm { username :: Username
                                  , passwordAgain :: PlainPassword }
                   deriving (Generic, Show)
 
+instance Docs.ToSample RegisterForm
+
 data LoginStatus = LoginStatus ( Maybe SafeUser ) deriving Generic
 
 data RegisterStatus = RegisterStatus deriving Generic
 
+instance Docs.ToSample RegisterStatus
+
 instance ToJSON LoginStatus
 instance FromJSON LoginStatus
+instance Docs.ToSample LoginStatus
 
 instance FromJSON RegisterForm
 instance ToJSON RegisterForm

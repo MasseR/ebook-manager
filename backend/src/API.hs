@@ -25,16 +25,14 @@ import qualified API.Catalogue as Catalogue
 
 data Index = Index
 
-type API = Get '[HTML] (AppView Index)
-      :<|> Users.API
+type API = Users.API
       :<|> "api" :> "current" :> Channels.API
       :<|> "api" :> "current" :> Books.API
       :<|> "api" :> "1" :> Catalogue.VersionedAPI 1
       :<|> "api" :> "current" :> Catalogue.VersionedAPI 1
 
 handler :: ServerT API AppM
-handler = indexHandler
-    :<|> Users.handler
+handler = Users.handler
     :<|> Channels.handler
     :<|> Books.handler
     :<|> Catalogue.handler

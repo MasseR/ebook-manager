@@ -1,53 +1,58 @@
-{-# Language DuplicateRecordFields #-}
-{-# Language DataKinds #-}
-{-# Language TypeFamilies #-}
-{-# Language TypeOperators #-}
-{-# Language NoImplicitPrelude #-}
-{-# Language MultiParamTypeClasses #-}
-{-# Language OverloadedStrings #-}
-{-# Language TemplateHaskell #-}
-{-# Language QuasiQuotes #-}
-{-# Language RecordWildCards #-}
-{-# Language DeriveGeneric #-}
-{-# Language FlexibleInstances #-}
-{-# Language TypeApplications #-}
-{-# Language DataKinds #-}
-{-# Language NamedFieldPuns #-}
+{-# LANGUAGE DataKinds                  #-}
+{-# LANGUAGE DeriveGeneric              #-}
+{-# LANGUAGE DuplicateRecordFields      #-}
+{-# LANGUAGE FlexibleInstances          #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE MultiParamTypeClasses      #-}
+{-# LANGUAGE NamedFieldPuns             #-}
+{-# LANGUAGE NoImplicitPrelude          #-}
+{-# LANGUAGE OverloadedStrings          #-}
+{-# LANGUAGE QuasiQuotes                #-}
+{-# LANGUAGE RecordWildCards            #-}
+{-# LANGUAGE TemplateHaskell            #-}
+{-# LANGUAGE TypeApplications           #-}
+{-# LANGUAGE TypeFamilies               #-}
+{-# LANGUAGE TypeOperators              #-}
 module API.Books where
 
 import           ClassyPrelude
 import           Control.Lens
-import           Control.Monad.Catch (throwM, MonadThrow)
+import           Control.Monad.Catch       (MonadThrow, throwM)
+import           Control.Monad.Trans.Maybe
+import           Crypto.Hash               (digestFromByteString)
 import           Data.Aeson
+import           Data.ByteArray            (convert)
 import           Data.Generics.Product
 import           Database
 import           Database.Book
 import           Database.Channel
 import           Database.Tag
-import           Servant hiding (contentType)
-import           Servant.Auth as SA
+import qualified Datastore                 as DS
+import           Servant                   hiding (contentType)
+import           Servant.Auth              as SA
+import qualified Servant.Docs              as Docs
 import           Server.Auth
 import           Types
 
-import           Control.Monad.Trans.Maybe
-
-import qualified Datastore as DS
-import           Data.ByteArray (convert)
-import           Crypto.Hash (digestFromByteString)
-
-data JsonBook = JsonBook { identifier :: BookID
+data JsonBook = JsonBook { identifier  :: BookID
                          , contentType :: Text
-                         , title :: Text
+                         , title       :: Text
                          , description :: Maybe Text
-                         , channels :: [Text]
-                         , tags :: [Text] }
+                         , channels    :: [Text]
+                         , tags        :: [Text] }
               deriving (Generic, Show, Eq)
 
+instance Docs.ToSample JsonBook where
+  toSamples _ = [("Book", JsonBook 13 "epub" "title" (Just "Description") [] [])]
+
+instance Docs.ToSample PostBook where
+  toSamples _ = [("Book", PostBook "epub" "title" (Just "Description") [] [])]
+
 data PostBook = PostBook { contentType :: Text
-                         , title :: Text
+                         , title       :: Text
                          , description :: Maybe Text
-                         , channels :: [Text]
-                         , tags :: [Text] }
+                         , channels    :: [Text]
+                         , tags        :: [Text] }
               deriving (Generic, Show, Eq)
 
 
@@ -58,13 +63,21 @@ instance FromJSON PostBook
 
 type API = Auth '[SA.BasicAuth, SA.JWT] SafeUser :> BaseAPI
 
+instance Docs.ToCapture (Capture "book_id" BookID) where
+  toCapture _ = Docs.DocCapture "book_id" "The book id"
+
 type BaseAPI = "books" :> Get '[JSON] [JsonBook]
        :<|> "books" :> ReqBody '[JSON] PostBook :> Post '[JSON] JsonBook
        :<|> "books" :> Capture "book_id" BookID :> "meta" :> ReqBody '[JSON] JsonBook :> Put '[JSON] JsonBook
-       :<|> "books" :> Capture "book_id" BookID :> ReqBody '[OctetStream] ByteString :> Put '[JSON] NoContent
+       :<|> "books" :> Capture "book_id" BookID :> ReqBody '[OctetStream] FileContent :> Put '[JSON] NoContent
        :<|> GetBook
 
-type GetBook = "books" :> Capture "book_id" BookID :> Get '[OctetStream] ByteString
+newtype FileContent = FileContent { getFileContent :: ByteString } deriving (MimeUnrender OctetStream, MimeRender OctetStream )
+
+instance Docs.ToSample FileContent where
+  toSamples _ = [("File contents", FileContent "bytes here and there")]
+
+type GetBook = "books" :> Capture "book_id" BookID :> Get '[OctetStream] FileContent
 
 handler :: ServerT API AppM
 handler user = listBooksHandler user
@@ -73,12 +86,12 @@ handler user = listBooksHandler user
           :<|> putBookContentHandler user
           :<|> getBookContentHandler user
 
-getBookContentHandler :: AuthResult SafeUser -> BookID -> AppM ByteString
+getBookContentHandler :: AuthResult SafeUser -> BookID -> AppM FileContent
 getBookContentHandler auth bookId = requireBookOwner auth bookId $ \SafeUser{username} -> do
   content <- runMaybeT $ do
     Book{contentHash=mHash} <- MaybeT $ runDB (getBook bookId username)
     contentHash <- MaybeT $ return (mHash >>= digestFromByteString . unHex)
-    MaybeT $ DS.get contentHash
+    FileContent <$> MaybeT (DS.get contentHash)
   maybe (throwM err404) return content
 
 requireBookOwner :: AuthResult SafeUser -> BookID -> (SafeUser -> AppM a) -> AppM a
@@ -87,8 +100,9 @@ requireBookOwner auth bookId f = flip requireLoggedIn auth $ \u@SafeUser{usernam
   unless exists $ throwM err404
   runDB (isBookOwner bookId username) >>= \o -> if o then f u else throwM err403
 
-putBookContentHandler :: AuthResult SafeUser -> BookID -> ByteString -> AppM NoContent
-putBookContentHandler auth bookId content = requireBookOwner auth bookId $ \SafeUser{username} -> do
+putBookContentHandler :: AuthResult SafeUser -> BookID -> FileContent -> AppM NoContent
+putBookContentHandler auth bookId fc = requireBookOwner auth bookId $ \SafeUser{username} -> do
+  let content = getFileContent fc
   key <- HashDigest . convert <$> DS.put content
   runDB (setContent bookId username key)
   return NoContent

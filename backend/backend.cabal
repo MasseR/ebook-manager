@@ -68,6 +68,7 @@ executable backend
                      , servant
                      , servant-auth
                      , servant-auth-server
+                     , servant-auth-docs
                      , servant-docs
                      , servant-lucid
                      , servant-multipart
@@ -124,6 +125,7 @@ test-suite spec
                      , servant-auth
                      , servant-auth-server
                      , servant-docs
+                     , servant-auth-docs
                      , servant-lucid
                      , servant-multipart
                      , servant-server

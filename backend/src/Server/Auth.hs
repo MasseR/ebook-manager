@@ -1,11 +1,11 @@
-{-# Language DataKinds #-}
-{-# Language TypeFamilies #-}
-{-# Language OverloadedStrings #-}
-{-# Language NoImplicitPrelude #-}
-{-# Language TypeOperators #-}
-{-# Language DuplicateRecordFields #-}
-{-# Language TypeApplications #-}
-{-# Language TemplateHaskell #-}
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE NoImplicitPrelude     #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE TypeOperators         #-}
 module Server.Auth
   ( SafeUser(..)
   , authCheck
@@ -13,28 +13,32 @@ module Server.Auth
   , requireLoggedIn)
   where
 
-import ClassyPrelude
-import Control.Lens (view)
-import Control.Monad.Logger
-import Control.Monad.Catch (throwM, MonadThrow)
-import Data.Aeson
-import Data.Generics.Product
-import Database
-import Database.Schema
-import Database.User
-import Servant (err401)
-import Servant.Auth.Server as SAS
-import Types
+import           ClassyPrelude
+import           Control.Lens          (view)
+import           Control.Monad.Catch   (MonadThrow, throwM)
+import           Control.Monad.Logger
+import           Data.Aeson
+import           Data.Generics.Product
+import           Database
+import           Database.Schema
+import           Database.User
+import           Servant               (err401)
+import           Servant.Auth.Server   as SAS
+import qualified Servant.Docs          as Docs
+import           Types
 
 -- generic-lens can convert similar types to this
 -- I'm trying out servant-auth-server which uses a jwt style login. IIRC anyone
 -- can open the jwt token and view what's inside, you just can't modify it.
 --
 -- Is it a problem that a human readable username and email are visible?
-data SafeUser = SafeUser { email :: Email
+data SafeUser = SafeUser { email    :: Email
                          , username :: Username
-                         , role :: Role }
+                         , role     :: Role }
               deriving (Show, Generic)
+
+instance Docs.ToSample SafeUser where
+  toSamples _ = [("User", SafeUser "user@example.com" "user" UserRole )]
 
 instance ToJSON SafeUser where
 instance FromJSON SafeUser where
