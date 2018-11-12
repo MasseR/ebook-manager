@@ -8,7 +8,7 @@ before_script:
   - mkdir -p ~/.config/nixpkgs
 
 script:
-  - nix build -f release.nix backend
+  - nix-build ./release.nix -A backend
 
 
 cache:
