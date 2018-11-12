@@ -1,27 +1,27 @@
-{-# Language DataKinds #-}
-{-# Language TypeFamilies #-}
-{-# Language TypeOperators #-}
-{-# Language NoImplicitPrelude #-}
-{-# Language MultiParamTypeClasses #-}
-{-# Language OverloadedStrings #-}
-{-# Language TemplateHaskell #-}
-{-# Language QuasiQuotes #-}
-{-# Language RecordWildCards #-}
-{-# Language DeriveGeneric #-}
-{-# Language FlexibleInstances #-}
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE DeriveGeneric         #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE NoImplicitPrelude     #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE QuasiQuotes           #-}
+{-# LANGUAGE RecordWildCards       #-}
+{-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE TypeOperators         #-}
 module API (API, handler) where
 
 
-import Servant
-import Servant.HTML.Lucid (HTML)
-import Types
+import           Servant
+import           Servant.HTML.Lucid (HTML)
+import           Types
 
-import View
+import           View
 
-import qualified API.Users as Users
-import qualified API.Channels as Channels
-import qualified API.Books as Books
-import qualified API.Catalogue as Catalogue
+import qualified API.Books          as Books
+import qualified API.Catalogue      as Catalogue
+import qualified API.Channels       as Channels
+import qualified API.Users          as Users
 
 data Index = Index
 
