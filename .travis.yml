@@ -1,0 +1,16 @@
+language: nix
+
+os:
+  - linux
+
+before_script:
+  - mkdir -m 0755 -p /nix/var/nix/{profiles,gcroots}/per-user/$USER
+  - mkdir -p ~/.config/nixpkgs
+
+script:
+  - nix build -f release.nix backend
+
+
+cache:
+  directories:
+  - nix
