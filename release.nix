@@ -22,6 +22,11 @@ let
           ghcjscustom = pkgs.haskell.packages.ghcjs84.override {
             overrides = self: super: {
               doctest = null;
+              comonad = dontCheck (super.comonad);
+              classy-prelude = dontCheck (super.classy-prelude);
+              unliftio = dontCheck (super.unliftio);
+              semigroupoids = dontCheck (super.semigroupoids);
+              lens = dontCheck (super.lens);
               directory-tree = dontCheck (super.directory-tree);
               http-types = dontCheck (super.http-types);
               tasty-quickcheck = dontCheck (super.tasty-quickcheck);

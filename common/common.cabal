@@ -13,13 +13,10 @@ extra-source-files:  ChangeLog.md
 cabal-version:       >=1.10
 
 library
-  exposed-modules:     Configuration
-                     , Data.Versioned
+  exposed-modules:     Data.Versioned
   -- other-extensions:
   build-depends:       base >=4.10
                      , classy-prelude
-                     , dhall
-                     , foreign-store
                      , generic-lens
                      , lens
                      , mtl
@@ -38,7 +35,6 @@ test-suite spec
   hs-source-dirs:      src
   build-depends:       base >=4.10
                      , classy-prelude
-                     , dhall
                      , foreign-store
                      , generic-lens
                      , lens

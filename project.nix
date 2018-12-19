@@ -23,7 +23,12 @@ let
   mkShell = name: pkg:
   let
     n =  "${name}-shell";
-    deps = haskellPackages'.ghcWithHoogle (pkgs: pkg.buildInputs ++ pkg.propagatedBuildInputs);
+    deps = with haskellPackages'; [
+      ghcid
+      cabal-install
+      hasktags
+      (haskellPackages'.ghcWithHoogle (pkgs: pkg.buildInputs ++ pkg.propagatedBuildInputs))
+    ];
   in
   {
     name = "${n}";

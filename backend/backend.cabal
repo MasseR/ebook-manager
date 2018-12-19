@@ -23,6 +23,7 @@ executable backend
                      , API.Catalogue
                      , API.Channels
                      , API.Users
+                     , Configuration
                      , Database
                      , Database.Book
                      , Database.Channel

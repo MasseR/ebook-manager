@@ -23,5 +23,6 @@ executable frontend
                      , miso
                      , jsaddle-warp
                      , mtl
+                     , common
   hs-source-dirs:      src
   default-language:    Haskell2010
