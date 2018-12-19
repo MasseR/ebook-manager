@@ -29,19 +29,19 @@ library
                      , RecordWildCards
   default-language:    Haskell2010
 
-test-suite spec
-  type:                exitcode-stdio-1.0
-  main-is:             Spec.hs
-  hs-source-dirs:      src
-  build-depends:       base >=4.10
-                     , classy-prelude
-                     , foreign-store
-                     , generic-lens
-                     , lens
-                     , mtl
-                     , text
-                     , transformers
-                     , validity
-                     , genvalidity-hspec
-                     , genvalidity-property
-                     , hspec
+-- test-suite spec
+--   type:                exitcode-stdio-1.0
+--   main-is:             Spec.hs
+--   hs-source-dirs:      src
+--   build-depends:       base >=4.10
+--                      , classy-prelude
+--                      , foreign-store
+--                      , generic-lens
+--                      , lens
+--                      , mtl
+--                      , text
+--                      , transformers
+--                      , validity
+--                      , genvalidity-hspec
+--                      , genvalidity-property
+--                      , hspec
