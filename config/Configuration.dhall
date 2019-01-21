@@ -3,5 +3,5 @@
              , host : Text
              , database : Text
              , migrations : Text }
-, store : { path : Text }
+, store : < Filestore : { path : Text } | IPFS : { common : Text } >
 }
