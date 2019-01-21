@@ -4,4 +4,5 @@
              , database : Text
              , migrations : Text }
 , store : < Filestore : { path : Text } | IPFS : { common : Text } >
+, port : Integer
 }

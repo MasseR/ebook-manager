@@ -18,7 +18,8 @@ data Store = Filestore { path :: Text }
            deriving (Show, Generic)
 
 data Config = Config { database :: Pg
-                     , store :: Store }
+                     , store :: Store
+                     , port :: Integer }
             deriving (Show, Generic)
 
 instance Interpret Pg

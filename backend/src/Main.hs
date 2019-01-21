@@ -8,7 +8,7 @@ module Main where
 
 import           ClassyPrelude
 import           Configuration
-import           Control.Lens              (view)
+import           Control.Lens              (view, to)
 import           Data.Generics.Product
 import           Data.Pool                 (createPool)
 import           Database.Selda.PostgreSQL (PGConnectInfo (..), pgOpen,
@@ -21,7 +21,7 @@ import           Types
 import System.Environment (getEnvironment)
 
 defaultMain :: App -> IO ()
-defaultMain = run 8080 . server
+defaultMain app = run (view (field @"config" . field @"port" . to fromIntegral) app) $ server app
 
 withApp :: Config -> (App -> IO ()) -> IO ()
 withApp config f = do
