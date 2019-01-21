@@ -8,5 +8,5 @@ before_script:
   - mkdir -p ~/.config/nixpkgs
 
 script:
-  - nix-build ./release.nix --option trusted-public-keys "masser-ebook-manager.cachix.org-1:mtFSkQ2MO5MvjUpulZoFKjKUIa8g8CTcdPVuJaPKS1w= cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=" --option binary-caches "https://masser-ebook-manager.cachix.org https://cache.nixos.org" -A ghc.backend -A ghc.frontend
-  - nix-build ./release.nix --option trusted-public-keys "masser-ebook-manager.cachix.org-1:mtFSkQ2MO5MvjUpulZoFKjKUIa8g8CTcdPVuJaPKS1w= cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=" --option binary-caches "https://masser-ebook-manager.cachix.org https://cache.nixos.org" -A ghcjs.frontend
+  - nix build -f ./release.nix --option trusted-public-keys "masser-ebook-manager.cachix.org-1:mtFSkQ2MO5MvjUpulZoFKjKUIa8g8CTcdPVuJaPKS1w= cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=" --option binary-caches "https://masser-ebook-manager.cachix.org https://cache.nixos.org" ghc.backend ghc.frontend
+  - nix build -f ./release.nix --option trusted-public-keys "masser-ebook-manager.cachix.org-1:mtFSkQ2MO5MvjUpulZoFKjKUIa8g8CTcdPVuJaPKS1w= cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=" --option binary-caches "https://masser-ebook-manager.cachix.org https://cache.nixos.org" ghcjs.frontend
