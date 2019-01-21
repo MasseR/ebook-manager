@@ -94,25 +94,30 @@ test-suite spec
   main-is:             Spec.hs
   hs-source-dirs:      src
   build-depends:       base >=4.10
-                     , exceptions
-                     , monad-control
-                     , common
                      , aeson
                      , asn1-data
                      , asn1-types
                      , bytestring
                      , classy-prelude
+                     , common
                      , cryptonite
                      , dhall
                      , directory
+                     , exceptions
                      , foreign-store
                      , generic-lens
+                     , genvalidity-hspec
+                     , genvalidity-hspec-aeson
+                     , genvalidity-property
+                     , genvalidity-text
+                     , hspec
                      , http-api-data
                      , http-media
                      , jose
                      , lens
                      , lucid
                      , memory
+                     , monad-control
                      , monad-logger
                      , mtl
                      , pandoc
@@ -124,25 +129,21 @@ test-suite spec
                      , selda-postgresql
                      , servant
                      , servant-auth
+                     , servant-auth-docs
                      , servant-auth-server
                      , servant-docs
-                     , servant-auth-docs
                      , servant-lucid
                      , servant-multipart
                      , servant-server
                      , text
                      , transformers
+                     , validity
                      , wai
                      , warp
                      , x509
                      , x509-store
                      , xml-conduit
                      , xml-hamlet
-                     , validity
-                     , genvalidity-hspec
-                     , genvalidity-property
-                     , genvalidity-text
-                     , hspec
   default-extensions:  DeriveGeneric
                      , NoImplicitPrelude
                      , OverloadedStrings

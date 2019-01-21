@@ -1,15 +1,16 @@
-{-# Language TypeApplications #-}
+{-# LANGUAGE TypeApplications #-}
 module Main where
 
 import           API.Books
-import qualified Data.Aeson as A
-import           Data.Char (isPrint)
+import qualified Data.Aeson            as A
+import           Data.Char             (isPrint)
 import           Data.GenValidity.Text ()
-import qualified Data.Text as T
+import qualified Data.Text             as T
 import           Database.Schema
 import           Prelude
 import           Test.Hspec
 import           Test.Validity
+import           Test.Validity.Aeson
 
 instance GenUnchecked PlainPassword
 instance GenValid PlainPassword
@@ -51,15 +52,15 @@ instance Validity PostBook
 spec :: Spec
 spec = do
   describe "JSON encoding" $ do
-    it "Works for PlainPassword" $ inverseFunctionsIfSecondSucceedsOnValid (A.encode @PlainPassword) A.decode
-    it "Works for Email" $ inverseFunctionsIfSecondSucceedsOnValid (A.encode @Email) A.decode
-    it "Username" $ inverseFunctionsIfSecondSucceedsOnValid (A.encode @Username) A.decode
-    it "Works for BookID" $ inverseFunctionsIfSecondSucceedsOnValid (A.encode @BookID) A.decode
-    it "Works for ChannelID" $ inverseFunctionsIfSecondSucceedsOnValid (A.encode @ChannelID) A.decode
-    it "Works for Role" $ inverseFunctionsIfSecondSucceedsOnValid (A.encode @Role) A.decode
-    it "Works for Visibility" $ inverseFunctionsIfSecondSucceedsOnValid (A.encode @Visibility) A.decode
-    it "Works for JsonBook" $ inverseFunctionsIfSecondSucceedsOnValid (A.encode @JsonBook) A.decode
-    it "Works for PostBook" $ inverseFunctionsIfSecondSucceedsOnValid (A.encode @PostBook) A.decode
+    jsonSpecOnValid @PlainPassword
+    jsonSpecOnValid @Email
+    jsonSpecOnValid @Username
+    jsonSpecOnValid @BookID
+    jsonSpecOnValid @ChannelID
+    jsonSpecOnValid @Role
+    jsonSpecOnValid @Visibility
+    jsonSpecOnValid @JsonBook
+    jsonSpecOnValid @PostBook
 
 main :: IO ()
 main = hspec spec
