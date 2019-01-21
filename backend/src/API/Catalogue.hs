@@ -17,7 +17,7 @@
 module API.Catalogue (VersionedAPI, handler) where
 
 import qualified API.Books
-import           ClassyPrelude
+import           ClassyPrelude hiding (link)
 import           Database
 import           Database.Book (Book(..))
 import qualified Database.Channel as Channel
@@ -46,15 +46,16 @@ data Pagination = Pagination { previous :: Maybe Rel
 
 newtype SubSection = SubSection Rel deriving (Show)
 newtype Acquisition = Acquisition Rel deriving (Show)
+newtype Time = Time { getTime :: UTCTime } deriving Show
 
 data instance Entry 1 = EntryV1 { title :: Text
                                 , identifier :: Text
-                                , updated :: UTCTime
+                                , updated :: Time
                                 , content :: Text
                                 , link :: Either SubSection Acquisition
                                 }
 
-data instance Catalog 1 = CatalogV1 { updated :: UTCTime
+data instance Catalog 1 = CatalogV1 { updated :: Time
                                     , self :: Rel
                                     , start :: Rel
                                     , pagination :: Pagination
@@ -68,7 +69,7 @@ deriving instance Generic (Entry 1)
 
 instance Docs.ToSample (Entry 1) where
   toSamples _ = [("Entry", EntryV1 "title" "identifier" docsTime "content" (Left (SubSection (Rel "sub"))))]
-instance Docs.ToSample UTCTime where
+instance Docs.ToSample Time where
   toSamples _ = [("time", docsTime)]
 instance Docs.ToSample Rel where
   toSamples _ = [("Relative link", Rel "next")]
@@ -76,9 +77,9 @@ instance Docs.ToSample Pagination
 instance Docs.ToSample (Catalog 1) -- where
   -- toSamples _ = [("catalog", CatalogV1 docsTime (Rel "prev") (Rel "next") (Pagination (Just "previous") (Just "next")) [])]
 
-docsTime :: UTCTime
-docsTime = unsafePerformIO getCurrentTime
-  
+docsTime :: Time
+docsTime = Time $ unsafePerformIO getCurrentTime
+
 
 instance ToNode SubSection where
   toNode (SubSection rel) = [xml|<link type="application/atom+xml;profile=opds-catalog;kind=acquisition" rel="subsection" href="#{unRel rel}">|]
@@ -91,7 +92,7 @@ instance ToNode (Entry 1) where
 <entry>
   <title>#{title}
   <id>#{identifier}
-  <updated>#{iso8601 updated}
+  <updated>#{iso8601 $ getTime updated}
   <content>#{content}
   ^{either toNode toNode link}
   |]
@@ -101,7 +102,7 @@ instance ToNode (Catalog 1) where
 <feed xmlns="http://www.w3.org/2005/Atom" xmlns:opds="http://opds-spec.org/2010/catalog">
   <id>#{unRel self}
   <title>Give me a title
-  <updated>#{iso8601 updated}
+  <updated>#{iso8601 $ getTime updated}
   <link type="application/atom+xml;profile=opds-catalog;kind=navigation" rel="self" href="#{unRel self}">
   <link type="application/atom+xml;profile=opds-catalog;kind=navigation" rel="start" href="#{unRel start}">
   $maybe n <- (next pagination)
@@ -125,7 +126,7 @@ relUrl x = Rel ("/api/current/" <> (pack . uriPath . linkURI $ x))
 
 getBooksV1 :: Channel.ChannelID -> SafeUser -> AppM (Catalog 1)
 getBooksV1 channelID SafeUser{username} = do
-  updated <- liftIO getCurrentTime
+  updated <- Time <$> liftIO getCurrentTime
   let self = relUrl selfUrl
       start = relUrl startUrl
       selfUrl = safeLink (Proxy @(BaseAPI 1)) (Proxy @(ChannelCatalog 1)) channelID
@@ -142,7 +143,7 @@ getBooksV1 channelID SafeUser{username} = do
 
 getChannelsV1 :: SafeUser -> AppM (Catalog 1)
 getChannelsV1 SafeUser{username} = do
-  updated <- liftIO getCurrentTime
+  updated <- Time <$> liftIO getCurrentTime
   let self = relUrl selfUrl
       -- I'm not sure if this safe link approach is really useable with this
       -- api hierarchy since I can't access the topmost api from here. Also
@@ -153,7 +154,7 @@ getChannelsV1 SafeUser{username} = do
   entries <- map (fromChannel updated) <$> runDB (Channel.userChannels username)
   pure CatalogV1{..}
   where
-    fromChannel :: UTCTime -> Channel.Channel -> Entry 1
+    fromChannel :: Time -> Channel.Channel -> Entry 1
     fromChannel updated Channel.Channel{..} =
       let url = safeLink (Proxy @(BaseAPI 1)) (Proxy @(ChannelCatalog 1)) identifier
           self = relUrl url

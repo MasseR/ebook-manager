@@ -13,17 +13,12 @@ module API (API, handler) where
 
 
 import           Servant
-import           Servant.HTML.Lucid (HTML)
 import           Types
-
-import           View
 
 import qualified API.Books          as Books
 import qualified API.Catalogue      as Catalogue
 import qualified API.Channels       as Channels
 import qualified API.Users          as Users
-
-data Index = Index
 
 type API = Users.API
       :<|> "api" :> "current" :> Channels.API
@@ -38,11 +33,3 @@ handler = Users.handler
     :<|> Catalogue.handler
     :<|> Catalogue.handler
 
-instance ToHtml Index where
-  toHtml _ = do
-    h1_ [class_ "title"] "Home page"
-    p_ [class_ "subtitle"] "Hello world"
-  toHtmlRaw = toHtml
-
-indexHandler :: AppM (AppView Index)
-indexHandler = mkView "Home" Index

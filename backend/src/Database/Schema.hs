@@ -3,6 +3,9 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE NoImplicitPrelude          #-}
 {-# LANGUAGE OverloadedStrings          #-}
+{-# LANGUAGE DataKinds          #-}
+{-# LANGUAGE TypeSynonymInstances          #-}
+{-# LANGUAGE FlexibleInstances          #-}
 module Database.Schema where
 
 import           ClassyPrelude
@@ -11,6 +14,7 @@ import           Database.Selda
 import           Database.Selda.Backend
 import           Database.Selda.Generic
 import qualified Servant.Docs           as Docs
+import Servant (Capture)
 import           Web.HttpApiData
 
 -- | User type
@@ -53,7 +57,13 @@ newtype UserID = UserID {unUserID :: Int} deriving (Show)
 
 newtype BookID = BookID {unBookID :: Int} deriving (Show, ToJSON, FromJSON, FromHttpApiData, Eq, Ord, ToHttpApiData, Generic, Num)
 
+instance Docs.ToCapture (Capture "book_id" BookID) where
+  toCapture _ = Docs.DocCapture "book_id" "The book id"
+
 newtype ChannelID = ChannelID {unChannelID :: Int} deriving (Show, ToHttpApiData, FromHttpApiData, ToJSON, FromJSON, Eq, Generic, Num)
+
+instance Docs.ToCapture (Capture "channel_id" ChannelID) where
+  toCapture _ = Docs.DocCapture "channel_id" "The channel id"
 
 newtype TagID = TagID {unTagID :: Int} deriving (Show)
 

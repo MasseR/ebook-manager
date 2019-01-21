@@ -1,22 +1,24 @@
-{-# Language OverloadedStrings #-}
-{-# Language RecordWildCards #-}
-{-# Language DuplicateRecordFields #-}
-{-# Language TypeApplications #-}
-{-# Language DataKinds #-}
-{-# Language NoImplicitPrelude #-}
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE NoImplicitPrelude     #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE RecordWildCards       #-}
+{-# LANGUAGE TypeApplications      #-}
 module Main where
 
-import Server (server)
-import Network.Wai.Handler.Warp (run)
-import Types
-import Configuration
-import Dhall (input, auto)
-import ClassyPrelude
-import Control.Lens (view)
-import Data.Generics.Product
-import Data.Pool (createPool)
-import Database.Selda.PostgreSQL (PGConnectInfo(..), pgOpen, seldaClose)
-import Servant.Auth.Server (generateKey)
+import           ClassyPrelude
+import           Configuration
+import           Control.Lens              (view)
+import           Data.Generics.Product
+import           Data.Pool                 (createPool)
+import           Database.Selda.PostgreSQL (PGConnectInfo (..), pgOpen,
+                                            seldaClose)
+import           Dhall                     (auto, input)
+import           Network.Wai.Handler.Warp  (run)
+import           Servant.Auth.Server       (generateKey)
+import           Server                    (server)
+import           Types
+import System.Environment (getEnvironment)
 
 defaultMain :: App -> IO ()
 defaultMain = run 8080 . server
@@ -35,5 +37,6 @@ withApp config f = do
 
 main :: IO ()
 main = do
-  c <- input auto "./config/config.dhall"
+  path <- fmap pack . lookup "CONF" <$> getEnvironment
+  c <- input auto (fromMaybe "./config/config.dhall" path)
   withApp c defaultMain

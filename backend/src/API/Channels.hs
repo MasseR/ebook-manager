@@ -16,7 +16,7 @@ module API.Channels (API, handler, JsonChannel(..)) where
 
 import           ClassyPrelude
 import           Control.Lens
-import           Control.Monad.Catch   (MonadThrow, throwM)
+import           Control.Monad.Catch   (throwM)
 import           Control.Monad.Logger
 import           Data.Aeson
 import           Data.Generics.Product
@@ -48,9 +48,6 @@ instance ToJSON UpdateChannel
 instance FromJSON UpdateChannel
 
 type API = Auth '[SA.BasicAuth, SA.Cookie, SA.JWT] SafeUser :> BaseAPI
-
-instance Docs.ToCapture (Capture "channel_id" ChannelID) where
-  toCapture _ = Docs.DocCapture "channel_id" "The channel id"
 
 type BaseAPI = "channels" :> ReqBody '[JSON] JsonChannel :> Post '[JSON] UpdateChannel
           :<|> "channels" :> Capture "channel_id" ChannelID :> ReqBody '[JSON] UpdateChannel :> Put '[JSON] UpdateChannel

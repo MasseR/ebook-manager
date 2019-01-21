@@ -1,30 +1,30 @@
-{-# Language DataKinds #-}
-{-# Language TypeFamilies #-}
-{-# Language OverloadedStrings #-}
-{-# Language NoImplicitPrelude #-}
-{-# Language TypeOperators #-}
-{-# Language DuplicateRecordFields #-}
-{-# Language TypeApplications #-}
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE NoImplicitPrelude     #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE TypeOperators         #-}
 module API.Users  where
 
 import           ClassyPrelude
-import           Control.Monad.Catch (throwM, MonadThrow)
+import           Control.Monad.Catch (throwM)
 import           Data.Aeson
-import           Database (runDB)
+import           Database            (runDB)
 import           Database.Schema
 import           Database.User
 import           Servant
-import           Servant.Auth as SA
+import           Servant.Auth        as SA
 import           Servant.Auth.Server as SAS
-import qualified Servant.Docs as Docs
+import qualified Servant.Docs        as Docs
 import           Server.Auth
 import           Types
 import           Web.FormUrlEncoded
 
 
-data RegisterForm = RegisterForm { username :: Username
-                                 , email :: Email
-                                 , password :: PlainPassword
+data RegisterForm = RegisterForm { username      :: Username
+                                 , email         :: Email
+                                 , password      :: PlainPassword
                                  , passwordAgain :: PlainPassword }
                   deriving (Generic, Show)
 
@@ -56,7 +56,7 @@ handler = loginHandler :<|> registerHandler
 
 loginHandler :: AuthResult SafeUser -> AppM LoginStatus
 loginHandler (Authenticated u) = return (LoginStatus (Just u))
-loginHandler _ = return (LoginStatus Nothing)
+loginHandler _                 = return (LoginStatus Nothing)
 
 registerHandler :: RegisterForm -> AppM RegisterStatus
 registerHandler RegisterForm{..} =

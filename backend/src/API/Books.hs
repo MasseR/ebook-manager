@@ -17,7 +17,7 @@ module API.Books where
 
 import           ClassyPrelude
 import           Control.Lens
-import           Control.Monad.Catch       (MonadThrow, throwM)
+import           Control.Monad.Catch       (throwM)
 import           Control.Monad.Trans.Maybe
 import           Crypto.Hash               (digestFromByteString)
 import           Data.Aeson
@@ -63,8 +63,6 @@ instance FromJSON PostBook
 
 type API = Auth '[SA.BasicAuth, SA.JWT] SafeUser :> BaseAPI
 
-instance Docs.ToCapture (Capture "book_id" BookID) where
-  toCapture _ = Docs.DocCapture "book_id" "The book id"
 
 type BaseAPI = "books" :> Get '[JSON] [JsonBook]
        :<|> "books" :> ReqBody '[JSON] PostBook :> Post '[JSON] JsonBook
