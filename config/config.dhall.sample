@@ -4,5 +4,7 @@
     , password = "password"
     , host = "hostname"
     , database = "ebook"
+    , migrations = "./migrations"
   }
+  store = { path = "/tmp/store" }
 }
