@@ -1,12 +1,7 @@
 {-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE DeriveGeneric         #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NoImplicitPrelude     #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE QuasiQuotes           #-}
-{-# LANGUAGE RecordWildCards       #-}
-{-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
 module API (API, handler) where
@@ -20,7 +15,7 @@ import qualified API.Catalogue      as Catalogue
 import qualified API.Channels       as Channels
 import qualified API.Users          as Users
 
-type API = Users.API
+type API = "api" :> Users.API
       :<|> "api" :> "current" :> Channels.API
       :<|> "api" :> "current" :> Books.API
       :<|> "api" :> "1" :> Catalogue.VersionedAPI 1
