@@ -21,9 +21,10 @@ import           Servant.API
 import           Servant.Links
 import Data.Proxy (Proxy(..))
 
-type API = Home :<|> Login
+type API = Home :<|> Login :<|> Register
 type Home = View Action
 type Login = "login" :> View Action
+type Register = "register" :> View Action
 
 data Action = Add
             | Subtract
@@ -42,25 +43,38 @@ updateModel m = \case
   Subtract -> noEff (over (field @"counter") (\x -> x - 1) m)
   SayHello -> m <# (liftIO (putStrLn "Hello world") >> pure NoOp)
   HandleURI uri -> noEff (set (field @"uri") uri m)
-  ChangeURI uri -> m <# (NoOp <$ pushURI uri)
+  ChangeURI uri -> m <# do
+    liftIO $ putStrLn $ "Pushing uri " <> show uri
+    pushURI uri
+    return $ HandleURI uri
   NoOp -> noEff m
 
 viewModel :: Model -> View Action
 viewModel model = view
   where
     view = either (const the404) id $ runRoute @API Proxy handlers uri model
-    handlers = home :<|> login
+    handlers = home :<|> login :<|> register
     home _ = div_ [] [ button_  [ onClick Add ] [ text "+" ]
               , text (ms (counter model))
               , button_ [ onClick Subtract ] [ text "-" ]
               , button_ [ onClick goLogin ] [ text "go login" ]
+              , button_ [ onClick goRegister ] [ text "go register" ]
             ]
     login _ = div_ [] []
+    register _ = div_ [] [
+        h3_ [] [text "register"]
+      , label_ [] [text "Username"], input_ [id_ "username", name_ "username"]
+      , label_ [] [text "Email"], input_ [id_ "email", name_ "email"]
+      , label_ [] [text "Password"], input_ [id_ "password", name_ "password"]
+      , label_ [] [text "Password again"], input_ [id_ "passwordAgain", name_ "passwordAgain"]
+      , button_ [] [text "Register"]
+      ]
     the404 = div_ [] []
 
-goLogin, goHome :: Action
+goLogin, goHome, goRegister :: Action
 goLogin = goto @Login @API Proxy Proxy
 goHome = goto @Home @API Proxy Proxy
+goRegister = goto @Register @API Proxy Proxy
 
 goto :: (IsElem endpoint api, HasLink endpoint, MkLink endpoint Link ~ Link) => Proxy api -> Proxy endpoint -> Action
 goto a b = ChangeURI (linkURI (safeLink a b))
